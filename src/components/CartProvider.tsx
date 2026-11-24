@@ -14,6 +14,8 @@ export type CartLine = {
   image?: string;
   art: ProductArt;
   qty: number;
+  /** пожелание к сертификату или подарку */
+  note?: string;
 };
 
 type Ctx = {

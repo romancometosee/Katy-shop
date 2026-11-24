@@ -174,6 +174,27 @@ export default async function HomePage() {
         <ProductRail products={niche} />
       </Section>
 
+      {/* клуб и подарки */}
+      <section className="container-x reveal mt-20 grid gap-4 md:grid-cols-2">
+        <Link href="/club" className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1c1917] to-[#3a2e2a] p-8 text-[#e8c98f] sm:p-10">
+          <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-[#e8c98f]/15 blur-3xl transition duration-700 group-hover:scale-125" />
+          <p className="text-xs font-semibold uppercase tracking-[.28em] opacity-70">Программа лояльности</p>
+          <p className="h-display mt-3 text-4xl sm:text-5xl">Клуб Katy</p>
+          <p className="mt-3 max-w-sm text-white/80">До 10% баллами с каждой покупки и подарок на день рождения. 300 баллов сразу за вступление.</p>
+          <span className="mt-6 inline-flex rounded-full bg-[#e8c98f] px-6 py-3 text-sm font-semibold text-ink transition group-hover:bg-white">Вступить в клуб</span>
+        </Link>
+        <Link href="/gift" className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#f6d5d9] to-[#f9ece4] p-8 sm:p-10">
+          <div className="absolute -bottom-6 right-6 hidden aspect-[1.6/1] w-56 rotate-[-8deg] rounded-2xl bg-gradient-to-br from-[#7a1f2b] to-[#b8475a] p-4 text-[#fff4e0] shadow-2xl transition duration-500 group-hover:rotate-[-3deg] sm:block">
+            <p className="h-display text-xl tracking-[.3em]">KATY</p>
+            <p className="h-display absolute bottom-4 left-4 text-3xl">5 000 ₽</p>
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-[.28em] text-rose">Подарки</p>
+          <p className="h-display mt-3 text-4xl sm:text-5xl">Сертификат<br />или подарок</p>
+          <p className="mt-3 max-w-xs text-ink-soft">Сертификат на любую сумму с пожеланием или подарок, собранный своими руками.</p>
+          <span className="mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white">Выбрать подарок</span>
+        </Link>
+      </section>
+
       <Section title="Журнал Katy" kicker="Советы и подборки" href="/journal" linkText="Все статьи">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {articles.slice(0, 3).map((a) => <JournalCard key={a.slug} a={a} images={articleImages(db, a)} />)}

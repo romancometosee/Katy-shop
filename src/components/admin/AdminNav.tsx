@@ -7,6 +7,7 @@ const items = [
   ["/admin", "Обзор", "◎"],
   ["/admin/orders", "Заказы", "▤"],
   ["/admin/products", "Товары и цены", "◇"],
+  ["/admin/club", "Клуб Katy", "✦"],
   ["/admin/promotions", "Акции и промокоды", "%"],
   ["/admin/banners", "Баннеры на главной", "▭"],
   ["/admin/categories", "Разделы каталога", "☰"],

@@ -133,6 +133,8 @@ export type OrderItem = {
   variantLabel: string;
   price: number;
   qty: number;
+  /** пожелание к сертификату или подарку */
+  note?: string;
 };
 
 export type Order = {
@@ -173,6 +175,18 @@ export type Database = {
   promoCodes: PromoCode[];
   banners: Banner[];
   orders: Order[];
+  /** Участники Клуба Katy */
+  members?: ClubMember[];
   /** Версия демо-данных: при обновлении сайта новые разделы и товары добавляются в уже сохранённые данные */
   seedVersion?: number;
+};
+
+/** Участник Клуба Katy. Ключ — телефон (как в накопительной системе магазинов) */
+export type ClubMember = {
+  phone: string; // 79991234567
+  name: string;
+  birthday?: string; // ГГГГ-ММ-ДД
+  email?: string;
+  points: number;
+  createdAt: string;
 };

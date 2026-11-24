@@ -35,7 +35,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   <tbody>
                     {o.items.map((i) => (
                       <tr key={i.variantId} className="border-b border-line">
-                        <td className="py-2">{i.name} <span className="text-ink-soft">· {i.variantLabel}</span></td>
+                        <td className="py-2">{i.name} <span className="text-ink-soft">· {i.variantLabel}</span>{i.note ? <span className="block text-xs text-rose">«{i.note}»</span> : null}</td>
                         <td className="py-2 text-right">{i.qty} × {rub(i.price)}</td>
                       </tr>
                     ))}

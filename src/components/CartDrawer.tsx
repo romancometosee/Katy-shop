@@ -41,7 +41,7 @@ export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliver
             <ul className="flex-1 divide-y divide-line overflow-y-auto px-6">
               {lines.map((l) => (
                 <li key={l.variantId} className="flex gap-4 py-4">
-                  <Link href={`/product/${l.slug}`} onClick={() => setDrawerOpen(false)} className="h-24 w-20 shrink-0 overflow-hidden rounded-xl">
+                  <Link href={l.slug.startsWith("/") ? l.slug : `/product/${l.slug}`} onClick={() => setDrawerOpen(false)} className="h-24 w-20 shrink-0 overflow-hidden rounded-xl">
                     <ProductImage images={l.image ? [l.image] : []} art={l.art} />
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col">

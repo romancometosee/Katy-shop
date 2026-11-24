@@ -54,7 +54,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
       setError("");
       const get = (k: string) => String(fd.get(k) ?? "");
       const r = await placeOrder({
-        items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, qty: l.qty })),
+        items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, qty: l.qty, note: l.note })),
         customer: { name: get("name"), phone: get("phone"), email: get("email"), city: get("city"), address: get("address"), comment: get("comment") },
         delivery,
         promoCode: applied?.code,
@@ -94,10 +94,10 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
         <ul className="card divide-y divide-line px-6">
           {lines.map((l) => (
             <li key={l.variantId} className="flex gap-5 py-5">
-              <Link href={`/product/${l.slug}`} className="h-32 w-28 shrink-0 overflow-hidden rounded-2xl"><ProductImage images={l.image ? [l.image] : []} art={l.art} /></Link>
+              <Link href={l.slug.startsWith("/") ? l.slug : `/product/${l.slug}`} className="h-32 w-28 shrink-0 overflow-hidden rounded-2xl"><ProductImage images={l.image ? [l.image] : []} art={l.art} /></Link>
               <div className="flex flex-1 flex-col">
                 <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">{l.brandName}</p>
-                <Link href={`/product/${l.slug}`} className="text-lg hover:text-rose">{l.name}</Link>
+                <Link href={l.slug.startsWith("/") ? l.slug : `/product/${l.slug}`} className="text-lg hover:text-rose">{l.name}</Link>
                 <p className="text-sm text-ink-soft">{l.variantLabel}</p>
                 <div className="mt-auto flex items-center justify-between">
                   <div className="flex items-center rounded-full border border-line">
