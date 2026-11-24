@@ -42,3 +42,11 @@ npm run dev                  # http://localhost:3000, админка — http://
 ## Размещение на сервере
 
 `deploy/setup-server.sh` — установка на чистый сервер Ubuntu (например, Timeweb Cloud): вставляется в поле Cloud-init при создании сервера. Скрипт ставит Node.js и Caddy, собирает сайт, запускает его и каждые 5 минут забирает обновления с GitHub. Данные магазина хранятся в `/var/lib/katy`.
+
+## Временное размещение на Cloudflare
+
+Пока сайт в разработке, он работает на Cloudflare Workers (через `@opennextjs/cloudflare`). Данные и фото хранятся в Cloudflare KV (`KATY_STORAGE=kv`, привязка `KATY_KV` в `wrangler.jsonc`).
+
+- Сборка: `npx opennextjs-cloudflare build`
+- Выкладка: `npx opennextjs-cloudflare deploy` (Cloudflare делает это сам при каждом обновлении кода на GitHub)
+- Пароль админки задаётся в настройках Worker'а как секрет `ADMIN_PASSWORD`

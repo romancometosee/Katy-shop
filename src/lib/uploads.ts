@@ -1,19 +1,17 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { putFile } from "./storage";
 
-export const UPLOAD_DIR = path.join(process.env.KATY_DATA_DIR || path.join(process.cwd(), "data"), "uploads");
-const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"];
+const types: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif", avif: "image/avif" };
+export const contentTypeFor = (name: string) => types[name.split(".").pop()?.toLowerCase() ?? ""] ?? "application/octet-stream";
 
 /** Сохраняет загруженные фото и возвращает их адреса */
 export async function saveUploads(files: File[]): Promise<string[]> {
   const urls: string[] = [];
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
   for (const f of files) {
     if (!f || typeof f === "string" || f.size === 0) continue;
-    const ext = path.extname(f.name).toLowerCase();
-    if (!allowed.includes(ext)) continue;
-    const name = `${crypto.randomUUID()}${ext}`;
-    await fs.writeFile(path.join(UPLOAD_DIR, name), Buffer.from(await f.arrayBuffer()));
+    const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!types[ext]) continue;
+    const name = `${crypto.randomUUID()}.${ext}`;
+    await putFile(name, await f.arrayBuffer(), types[ext]);
     urls.push(`/api/uploads/${name}`);
   }
   return urls;

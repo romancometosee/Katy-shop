@@ -1,0 +1,12 @@
+{
+  // Временное размещение на Cloudflare (до переезда на российский сервер)
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "katy-shop",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "vars": { "KATY_STORAGE": "kv" },
+  "kv_namespaces": [{ "binding": "KATY_KV", "id": "1476207118754b8d987cf0b480f124f8" }],
+  "observability": { "enabled": true }
+}

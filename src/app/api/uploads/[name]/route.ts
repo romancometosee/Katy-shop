@@ -1,16 +1,10 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { UPLOAD_DIR } from "@/lib/uploads";
-
-const types: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif", ".avif": "image/avif" };
+import { getFile } from "@/lib/storage";
+import { contentTypeFor } from "@/lib/uploads";
 
 export async function GET(_: Request, { params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
-  const safe = path.basename(name);
-  try {
-    const buf = await fs.readFile(path.join(UPLOAD_DIR, safe));
-    return new Response(buf, { headers: { "Content-Type": types[path.extname(safe).toLowerCase()] ?? "application/octet-stream", "Cache-Control": "public, max-age=31536000, immutable" } });
-  } catch {
-    return new Response("Not found", { status: 404 });
-  }
+  const safe = name.replace(/[^a-zA-Z0-9.-]/g, "");
+  const data = await getFile(safe);
+  if (!data) return new Response("Not found", { status: 404 });
+  return new Response(data, { headers: { "Content-Type": contentTypeFor(safe), "Cache-Control": "public, max-age=31536000, immutable" } });
 }
