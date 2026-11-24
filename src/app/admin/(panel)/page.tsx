@@ -4,11 +4,11 @@ import { getDb } from "@/lib/db";
 import { isPromotionLive } from "@/lib/catalog";
 import { dateRu, rub } from "@/lib/format";
 import { moderateReview } from "@/lib/admin-actions";
-import { getAiKey } from "@/lib/ai";
+import { getAiProvider } from "@/lib/ai";
 
 export default async function Dashboard() {
   const db = await getDb();
-  const aiOn = Boolean(await getAiKey());
+  const aiOn = Boolean(await getAiProvider());
   const orders = db.orders.filter((o) => o.status !== "cancelled");
   const revenue = orders.reduce((s, o) => s + o.total, 0);
   const pending = db.products.flatMap((p) => p.reviews.filter((r) => !r.approved).map((r) => ({ ...r, product: p })));
@@ -38,7 +38,7 @@ export default async function Dashboard() {
           <p className="mt-1 text-sm text-ink-soft">
             {aiOn
               ? "Покупатели могут задавать вопросы в окне чата, Katy подбирает товары из вашего каталога."
-              : "Окно чата уже на сайте, но пока показывает обычный поиск. Чтобы Katy начала отвечать, в настройках Cloudflare нужно добавить секрет ANTHROPIC_API_KEY."}
+              : "Окно чата уже на сайте, но пока показывает обычный поиск. Чтобы Katy начала отвечать, в настройках Cloudflare нужно добавить ключ YandexGPT: секреты YANDEX_API_KEY и YANDEX_FOLDER_ID."}
           </p>
         </div>
       </div>

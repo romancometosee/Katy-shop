@@ -2,17 +2,35 @@
 import type { Database, Product } from "./types";
 import { toView } from "./catalog";
 
-/** Ключ хранится в настройках Cloudflare (секрет ANTHROPIC_API_KEY), в коде его нет */
-export async function getAiKey(): Promise<string | undefined> {
-  if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;
+/** Секреты хранятся в настройках Cloudflare (или на сервере), в коде их нет */
+async function secret(name: string): Promise<string | undefined> {
+  if (process.env[name]) return process.env[name];
   try {
     const { getCloudflareContext } = await import("@opennextjs/cloudflare");
     const { env } = await getCloudflareContext({ async: true });
-    const v = (env as unknown as Record<string, unknown>).ANTHROPIC_API_KEY;
+    const v = (env as unknown as Record<string, unknown>)[name];
     return typeof v === "string" && v ? v : undefined;
   } catch {
     return undefined;
   }
+}
+
+export type AiProvider =
+  | { kind: "yandex"; apiKey: string; folderId: string; model: string }
+  | { kind: "claude"; apiKey: string };
+
+/**
+ * Какой ИИ отвечает покупателям. Основной — YandexGPT (работает в России):
+ * секреты YANDEX_API_KEY и YANDEX_FOLDER_ID. Если когда-нибудь добавить
+ * ANTHROPIC_API_KEY, вместо него будет отвечать Claude.
+ */
+export async function getAiProvider(): Promise<AiProvider | undefined> {
+  const claude = await secret("ANTHROPIC_API_KEY");
+  if (claude) return { kind: "claude", apiKey: claude };
+  const apiKey = await secret("YANDEX_API_KEY");
+  const folderId = await secret("YANDEX_FOLDER_ID");
+  if (apiKey && folderId) return { kind: "yandex", apiKey, folderId, model: (await secret("YANDEX_GPT_MODEL")) || "yandexgpt/latest" };
+  return undefined;
 }
 
 const words = (s: string) => s.toLowerCase().replace(/ё/g, "е").split(/[^a-zа-я0-9]+/i).filter((w) => w.length > 2);
