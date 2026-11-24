@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
+
+  --color-ink: #1c1917;
+  --color-ink-soft: #57534e;
+  --color-cream: #faf7f2;
+  --color-sand: #f2ebe1;
+  --color-blush: #f6e4e4;
+  --color-rose: #c2546b;
+  --color-rose-dark: #9e3a52;
+  --color-gold: #b8935a;
+  --color-gold-light: #e8d5b0;
+  --color-line: #e7e0d6;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@utility container-x {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-wide transition active:scale-[.98] disabled:opacity-50;
+}
+@utility btn-dark {
+  @apply btn bg-ink text-white hover:bg-black;
+}
+@utility btn-rose {
+  @apply btn bg-rose text-white hover:bg-rose-dark;
+}
+@utility btn-light {
+  @apply btn border border-ink/15 bg-white text-ink hover:border-ink/40;
+}
+@utility chip {
+  @apply inline-flex items-center rounded-full border border-line bg-white px-3 py-1.5 text-xs font-medium text-ink-soft transition hover:border-ink/40 hover:text-ink;
+}
+@utility chip-active {
+  @apply border-ink bg-ink text-white hover:text-white;
+}
+@utility input {
+  @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-sm outline-none transition placeholder:text-stone-400 focus:border-ink/50 focus:ring-2 focus:ring-ink/5;
+}
+@utility label {
+  @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-soft;
+}
+@utility h-display {
+  @apply font-serif font-medium tracking-tight;
+}
+@utility card {
+  @apply rounded-3xl border border-line bg-white;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s ease both;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
