@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useCart } from "./CartProvider";
 import ProductImage from "./ProductImage";
 import { HeartIcon, StarIcon } from "./Icons";
+import ShadeDots from "./ShadeDots";
 import { rub } from "@/lib/format";
 import type { ProductView } from "@/lib/catalog";
 
@@ -43,6 +44,11 @@ export default function ProductCard({ p }: { p: ProductView }) {
       <div className="flex flex-1 flex-col px-1 pt-4">
         <p className="text-[11px] font-bold uppercase tracking-[.15em] text-ink-soft">{p.brandName}</p>
         <Link href={`/product/${p.slug}`} className="mt-1 line-clamp-2 text-[15px] leading-snug hover:text-rose">{p.name}</Link>
+        {p.shades && (
+          <div className="mt-2">
+            <ShadeDots shades={p.shades} current={p.slug} size="h-4 w-4" />
+          </div>
+        )}
         {many && (
           <div className="mt-2 flex flex-wrap gap-1">
             {p.variants.slice(0, 4).map((v) => <span key={v.id} className="rounded-md bg-sand px-1.5 py-0.5 text-[11px] text-ink-soft">{v.label.replace("Тестер ", "T ")}</span>)}

@@ -32,7 +32,37 @@ export type ProductView = {
   reviewsCount: number;
   gender?: Gender;
   family?: string;
+  /** Оттенки той же линейки (гель-лаки, лаки, помады): кружочки цвета в карточке */
+  shades?: Shade[];
+  /** Название оттенка этого товара (без названия линейки) */
+  shadeName?: string;
 };
+
+export type Shade = { slug: string; name: string; color: string };
+
+// подразделы, где товары отличаются оттенком
+const SHADE_SUBS = ["gel-laki", "laki", "guby"];
+const shadeCache = new WeakMap<Database, Map<string, Shade[]>>();
+
+/** Все оттенки линейки: те же бренд и подраздел, минимум два товара */
+export function shadesFor(db: Database, product: Product): Shade[] | undefined {
+  const sub = product.subcategoryId;
+  if (!sub || !SHADE_SUBS.some((s) => sub.endsWith(`--${s}`))) return undefined;
+  let cache = shadeCache.get(db);
+  if (!cache) shadeCache.set(db, (cache = new Map()));
+  const key = `${product.brandId}|${sub}`;
+  let list = cache.get(key);
+  if (!list) {
+    const same = db.products.filter((p) => p.isActive && p.brandId === product.brandId && p.subcategoryId === sub);
+    // общее начало названий («Гель-лак GelColor») убираем — остаётся имя оттенка
+    const words = same.map((p) => p.name.split(" "));
+    let common = 0;
+    while (words.length > 1 && words.every((w) => w.length > common + 1 && w[common] === words[0][common])) common++;
+    list = same.map((p, i) => ({ slug: p.slug, name: words[i].slice(common).join(" "), color: p.art.color }));
+    cache.set(key, list);
+  }
+  return list.length > 1 ? list : undefined;
+}
 
 export function isPromotionLive(p: Promotion, at = new Date()) {
   return p.isActive && new Date(p.startsAt) <= at && at <= new Date(p.endsAt);
@@ -93,6 +123,10 @@ export function toView(db: Database, product: Product): ProductView {
     reviewsCount: product.reviews.filter((r) => r.approved).length,
     gender: product.gender,
     family: product.family,
+    ...(() => {
+      const shades = shadesFor(db, product);
+      return shades ? { shades, shadeName: shades.find((x) => x.slug === product.slug)?.name } : {};
+    })(),
   };
 }
 
@@ -196,3 +230,45 @@ export function categoryPath(db: Database, c: Category) {
 }
 
 export const genderLabel: Record<string, string> = { women: "Женский", men: "Мужской", unisex: "Унисекс" };
+
+// «Соберите уход»: какие подразделы дополняют товар (шаги ритуала)
+const ROUTINE: Record<string, { title: string; steps: string[] }> = {
+  "volosy--shampuni": { title: "Соберите уход за волосами", steps: ["volosy--maski-i-kondicionery", "volosy--masla"] },
+  "volosy--maski-i-kondicionery": { title: "Соберите уход за волосами", steps: ["volosy--shampuni", "volosy--masla"] },
+  "volosy--masla": { title: "Соберите уход за волосами", steps: ["volosy--shampuni", "volosy--maski-i-kondicionery"] },
+  "volosy--stayling": { title: "Соберите уход за волосами", steps: ["volosy--shampuni", "volosy--masla"] },
+  "nogti--gel-laki": { title: "Всё для маникюра", steps: ["nogti--baza-i-top", "nogti--uhod-za-nogtyami"] },
+  "nogti--laki": { title: "Всё для маникюра", steps: ["nogti--uhod-za-nogtyami", "nogti--baza-i-top"] },
+  "nogti--baza-i-top": { title: "Всё для маникюра", steps: ["nogti--gel-laki", "nogti--uhod-za-nogtyami"] },
+  "nogti--uhod-za-nogtyami": { title: "Всё для маникюра", steps: ["nogti--laki", "nogti--gel-laki"] },
+  "uhod-za-licom--ochishchenie": { title: "Соберите ритуал ухода", steps: ["uhod-za-licom--syvorotki", "uhod-za-licom--kremy"] },
+  "uhod-za-licom--tonery": { title: "Соберите ритуал ухода", steps: ["uhod-za-licom--syvorotki", "uhod-za-licom--kremy"] },
+  "uhod-za-licom--syvorotki": { title: "Соберите ритуал ухода", steps: ["uhod-za-licom--ochishchenie", "uhod-za-licom--kremy", "uhod-za-licom--spf"] },
+  "uhod-za-licom--kremy": { title: "Соберите ритуал ухода", steps: ["uhod-za-licom--ochishchenie", "uhod-za-licom--syvorotki", "uhod-za-licom--spf"] },
+  "uhod-za-licom--maski": { title: "Соберите ритуал ухода", steps: ["uhod-za-licom--ochishchenie", "uhod-za-licom--kremy"] },
+  "uhod-za-licom--spf": { title: "Соберите ритуал ухода", steps: ["uhod-za-licom--ochishchenie", "uhod-za-licom--syvorotki"] },
+  "makiyazh--lico": { title: "Завершите образ", steps: ["makiyazh--glaza", "makiyazh--guby"] },
+  "makiyazh--glaza": { title: "Завершите образ", steps: ["makiyazh--lico", "makiyazh--brovi", "makiyazh--guby"] },
+  "makiyazh--guby": { title: "Завершите образ", steps: ["makiyazh--lico", "makiyazh--glaza"] },
+  "makiyazh--brovi": { title: "Завершите образ", steps: ["makiyazh--glaza", "makiyazh--lico"] },
+  "telo--dush": { title: "Ритуал для тела", steps: ["telo--skraby", "telo--kremy-dlya-tela"] },
+  "telo--skraby": { title: "Ритуал для тела", steps: ["telo--dush", "telo--kremy-dlya-tela"] },
+  "telo--kremy-dlya-tela": { title: "Ритуал для тела", steps: ["telo--dush", "telo--dymki"] },
+  "telo--dymki": { title: "Ритуал для тела", steps: ["telo--dush", "telo--kremy-dlya-tela"] },
+};
+
+/** Товары, которые дополняют этот: по одному на каждый шаг (сначала того же бренда, потом хиты) */
+export function routineFor(db: Database, product: Product): { title: string; steps: { step: string; product: ProductView }[] } | undefined {
+  const r = product.subcategoryId ? ROUTINE[product.subcategoryId] : undefined;
+  if (!r) return undefined;
+  const steps = r.steps
+    .map((subId) => {
+      const cands = db.products.filter((p) => p.isActive && p.subcategoryId === subId && p.variants.some((v) => v.stock > 0));
+      if (!cands.length) return undefined;
+      cands.sort((a, b) => Number(b.brandId === product.brandId) - Number(a.brandId === product.brandId) || Number(b.isHit) - Number(a.isHit) || b.rating - a.rating);
+      const step = db.categories.find((c) => c.id === subId)?.name ?? "";
+      return { step, product: toView(db, cands[0]) };
+    })
+    .filter((x): x is { step: string; product: ProductView } => Boolean(x));
+  return steps.length ? { title: r.title, steps } : undefined;
+}

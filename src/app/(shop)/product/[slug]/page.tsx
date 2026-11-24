@@ -7,9 +7,11 @@ import ProductImage from "@/components/ProductImage";
 import ProductRail from "@/components/ProductRail";
 import Section from "@/components/Section";
 import { StarIcon } from "@/components/Icons";
+import ShadeDots from "@/components/ShadeDots";
 import RecentlyViewed, { TrackView } from "@/components/RecentlyViewed";
 import { getDb } from "@/lib/db";
-import { genderLabel, searchProducts, toView } from "@/lib/catalog";
+import { genderLabel, routineFor, searchProducts, toView } from "@/lib/catalog";
+import RoutineBuilder from "@/components/RoutineBuilder";
 import { submitReview } from "@/lib/actions";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -30,6 +32,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const cat = db.categories.find((c) => c.id === product.categoryId);
   const sub = db.categories.find((c) => c.id === product.subcategoryId);
   const reviews = product.reviews.filter((r) => r.approved);
+  const routine = routineFor(db, product);
   const related = searchProducts(db, { subcategory: product.subcategoryId }).filter((x) => x.id !== p.id).slice(0, 4);
   const sameBrand = searchProducts(db, { brands: [product.brandId] }).filter((x) => x.id !== p.id).slice(0, 4);
 
@@ -79,6 +82,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <span className="font-semibold">{p.rating.toFixed(1)}</span>
             <span className="text-ink-soft">· {reviews.length} отзывов</span>
           </div>
+          {p.shades && (
+            <div className="mt-6">
+              <p className="mb-2.5 text-sm">
+                <span className="text-ink-soft">Оттенок:</span> <b>{p.shadeName}</b>
+                <span className="text-ink-soft"> · ещё {p.shades.length - 1} в линейке</span>
+              </p>
+              <ShadeDots shades={p.shades} current={p.slug} max={24} size="h-8 w-8" />
+            </div>
+          )}
           <div className="mt-8">
             <ProductBuy p={p} giftText={db.settings.giftText} freeDeliveryFrom={db.settings.freeDeliveryFrom} />
           </div>
@@ -92,6 +104,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </dl>
         </div>
       </div>
+
+      {routine && <RoutineBuilder title={routine.title} current={p} currentStep={sub?.name ?? ""} steps={routine.steps} />}
 
       <div className="mt-16">
         <ProductTabs description={product.description} notes={product.notes} reviews={reviews} productId={product.id} submitReview={submitReview} />

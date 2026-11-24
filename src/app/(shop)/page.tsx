@@ -12,6 +12,9 @@ import { GiftIcon, ShieldIcon, SparkIcon, TruckIcon, ChevronRight, StarIcon } fr
 import { getDb } from "@/lib/db";
 import { isPromotionLive, searchProducts, topCategories } from "@/lib/catalog";
 import { rub } from "@/lib/format";
+import JournalCard from "@/components/JournalCard";
+import { articles } from "@/lib/journal";
+import { articleImages } from "@/lib/journal-images";
 
 const notes = [
   { name: "Ваниль", color: "#f3e3c3" },
@@ -169,6 +172,12 @@ export default async function HomePage() {
 
       <Section title="Нишевая парфюмерия" kicker="Для ценителей" href="/catalog/parfyumeriya/nishevaya">
         <ProductRail products={niche} />
+      </Section>
+
+      <Section title="Журнал Katy" kicker="Советы и подборки" href="/journal" linkText="Все статьи">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {articles.slice(0, 3).map((a) => <JournalCard key={a.slug} a={a} images={articleImages(db, a)} />)}
+        </div>
       </Section>
 
       {/* бренды */}

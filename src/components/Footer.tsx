@@ -27,6 +27,7 @@ export default function Footer({ settings, categories }: { settings: Settings; c
           <ul className="space-y-2 text-sm">
             <li><Link href="/delivery" className="hover:text-white">Доставка и оплата</Link></li>
             <li><Link href="/podbor" className="hover:text-white">Подбор аромата</Link></li>
+            <li><Link href="/journal" className="hover:text-white">Журнал Katy</Link></li>
             <li><Link href="/sale" className="hover:text-white">Акции</Link></li>
             <li><Link href="/about" className="hover:text-white">О магазине и гарантия оригинальности</Link></li>
           </ul>
