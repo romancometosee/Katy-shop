@@ -4,9 +4,11 @@ import { getDb } from "@/lib/db";
 import { isPromotionLive } from "@/lib/catalog";
 import { dateRu, rub } from "@/lib/format";
 import { moderateReview } from "@/lib/admin-actions";
+import { getAiKey } from "@/lib/ai";
 
 export default async function Dashboard() {
   const db = await getDb();
+  const aiOn = Boolean(await getAiKey());
   const orders = db.orders.filter((o) => o.status !== "cancelled");
   const revenue = orders.reduce((s, o) => s + o.total, 0);
   const pending = db.products.flatMap((p) => p.reviews.filter((r) => !r.approved).map((r) => ({ ...r, product: p })));
@@ -27,6 +29,18 @@ export default async function Dashboard() {
             <p className="h-display mt-2 text-4xl">{v}</p>
           </Link>
         ))}
+      </div>
+
+      <div className={`card mt-6 flex items-start gap-4 p-5 ${aiOn ? "" : "border-[#e8c98f]"}`}>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#f2b8c0] to-[#e8c98f]">✦</span>
+        <div>
+          <p className="font-semibold">ИИ-консультант «Спросить Katy»: {aiOn ? "работает" : "ждёт ключ"}</p>
+          <p className="mt-1 text-sm text-ink-soft">
+            {aiOn
+              ? "Покупатели могут задавать вопросы в окне чата, Katy подбирает товары из вашего каталога."
+              : "Окно чата уже на сайте, но пока показывает обычный поиск. Чтобы Katy начала отвечать, в настройках Cloudflare нужно добавить секрет ANTHROPIC_API_KEY."}
+          </p>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">

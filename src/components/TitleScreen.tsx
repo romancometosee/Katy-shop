@@ -2,6 +2,7 @@
 import Link from "next/link";
 import PhotoFan from "./PhotoFan";
 import { SearchIcon } from "./Icons";
+import { AskKatyButton } from "./AskKaty";
 import type { Category } from "@/lib/types";
 import { categoryImages } from "@/lib/productImages";
 
@@ -45,6 +46,10 @@ export default function TitleScreen({ categories, brands }: { categories: Catego
             <input name="q" placeholder="Например, гель-лак OPI или Baccarat Rouge" className="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none" />
             <button className="btn-dark shrink-0 px-6 py-2.5">Найти</button>
           </form>
+          <AskKatyButton className="group mt-3 inline-flex items-center gap-2 rounded-full px-1 py-1 text-sm text-ink-soft transition hover:text-ink">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#f2b8c0] to-[#e8c98f] text-[11px] text-ink">✦</span>
+            Не знаете, что выбрать? <span className="font-semibold text-ink underline decoration-rose/40 underline-offset-4 group-hover:decoration-rose">Спросите Katy</span>
+          </AskKatyButton>
 
           <div className="mt-5 flex flex-wrap gap-2">
             {shown.map((t) => (
