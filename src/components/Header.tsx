@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useCart } from "./CartProvider";
 import ProductArt from "./ProductArt";
 import PhotoFan from "./PhotoFan";
+import SearchSuggest from "./SearchSuggest";
 import { categoryImages } from "@/lib/productImages";
 import { BagIcon, ChevronDown, ChevronRight, CloseIcon, HeartIcon, MenuIcon, SearchIcon } from "./Icons";
 import type { ProductArt as Art } from "@/lib/types";
@@ -24,11 +25,13 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
   const [mobile, setMobile] = useState(false);
   const [mobileSub, setMobileSub] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [suggest, setSuggest] = useState(false);
   const router = useRouter();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setMobile(false);
+    setSuggest(false);
     router.push(`/search?q=${encodeURIComponent(q)}`);
   };
 
@@ -57,16 +60,18 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
             <span className="mt-1 hidden text-[10px] uppercase tracking-[.35em] text-ink-soft sm:block">parfum · beauty</span>
           </Link>
 
-          <form onSubmit={submit} className="mx-auto hidden max-w-md flex-1 lg:block">
+          <form onSubmit={submit} className="relative mx-auto hidden max-w-md flex-1 lg:block" onFocus={() => setSuggest(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setSuggest(false); }}>
             <label className="relative block">
               <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Аромат, бренд или нота — например, «ваниль»"
+                onKeyDown={(e) => e.key === "Escape" && setSuggest(false)}
+                placeholder="Товар, бренд или нота — например, «гель-лак»"
                 className="w-full rounded-full border border-line bg-white py-2.5 pl-11 pr-4 text-sm outline-none focus:border-ink/40"
               />
             </label>
+            <SearchSuggest q={q} open={suggest} onClose={() => setSuggest(false)} />
           </form>
 
           <div className="ml-auto flex items-center gap-1 lg:ml-0">

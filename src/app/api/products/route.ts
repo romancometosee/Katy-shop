@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       const t = `${v.brandName} ${v.name} ${v.shortDescription} ${v.family ?? ""}`.toLowerCase().replace(/ё/g, "е");
       return { v, s: ws.filter((w) => t.includes(w)).length };
     });
-    return NextResponse.json(scored.filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 4).map((x) => x.v));
+    return NextResponse.json(scored.filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, Math.min(12, Number(url.searchParams.get("limit") ?? 4))).map((x) => x.v));
   }
   const list = (k: string) => url.searchParams.get(k)?.split(",").filter(Boolean);
   const products = searchProducts(db, {
