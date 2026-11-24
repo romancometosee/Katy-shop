@@ -87,6 +87,16 @@ export type Brand = {
 
 export type PromotionScope = "all" | "category" | "brand" | "products";
 
+/**
+ * Механика акции:
+ * percent — скидка % на товары (цены на сайте сразу ниже);
+ * bundle — «3=2»: из каждых N товаров акции самый дешёвый бесплатно;
+ * gift — подарок при покупке товаров акции от суммы;
+ * tiers — чем больше сумма, тем больше скидка (−5% от 3000, −10% от 5000…);
+ * delivery — бесплатная доставка (можно от суммы).
+ */
+export type PromotionKind = "percent" | "bundle" | "gift" | "tiers" | "delivery";
+
 /** Акция: скидка на группу товаров на время */
 export type Promotion = {
   id: string;
@@ -100,6 +110,19 @@ export type Promotion = {
   endsAt: string;
   isActive: boolean;
   color: string; // цвет плашки
+  /** механика; если не указана — обычная скидка % */
+  kind?: PromotionKind;
+  /** bundle: сколько товаров берёте (3) и за сколько платите (2) */
+  buyQty?: number;
+  payQty?: number;
+  /** gift / delivery: от какой суммы товаров акции */
+  minTotal?: number;
+  /** gift: что дарим */
+  giftText?: string;
+  /** tiers: ступени скидки по сумме */
+  tiers?: { from: number; percent: number }[];
+  /** «Товар дня»: один день, для адвент-календаря */
+  dayDeal?: boolean;
 };
 
 /** Промокод для корзины */
@@ -149,6 +172,8 @@ export type Order = {
   deliveryPrice: number;
   total: number;
   promoCode?: string;
+  /** скидки и подарки по акциям в корзине */
+  promos?: { title: string; amount: number; gift?: string }[];
   gift: string;
   status: OrderStatus;
 };

@@ -329,6 +329,26 @@ export const seedProducts: Product[] = [
   product({ name: "Адвент-календарь Beauty Advent 2026", brand: "Rituals", sub: "nabory--advent", price: 8900, label: "24 сюрприза", shape: "compact", color: "#4b3a63", accent: "#d4af37", bg: "#f1ecf7", short: "24 средства ухода — праздник каждый день декабря.", hit: true, isNew: true, age: 1 }),
 ];
 
+/** Примеры новых механик (добавлены в версии 3): 3 = 2 на гель-лаки */
+export const DEMO_PROMOTIONS = (): Database["promotions"] => [
+  {
+    id: "gel-3-2",
+    slug: "3-2-na-gel-laki",
+    title: "3 = 2 на гель-лаки",
+    subtitle: "Третий оттенок — в подарок",
+    discountPercent: 33,
+    scope: "category",
+    targetIds: ["nogti--gel-laki"],
+    startsAt: daysAgo(1),
+    endsAt: daysAhead(21),
+    isActive: true,
+    color: "#4b3a63",
+    kind: "bundle",
+    buyQty: 3,
+    payQty: 2,
+  },
+];
+
 export function createSeed(): Database {
   return {
     settings: {
@@ -373,6 +393,7 @@ export function createSeed(): Database {
         isActive: true,
         color: "#2b6cb0",
       },
+      ...DEMO_PROMOTIONS(),
     ],
     promoCodes: [
       { code: "KATY10", discountPercent: 10, minTotal: 3000, isActive: true },

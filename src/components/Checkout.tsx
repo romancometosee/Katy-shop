@@ -6,6 +6,8 @@ import ProductImage from "./ProductImage";
 import { GiftIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import { rub } from "@/lib/format";
 import { checkPromoCode, placeOrder } from "@/lib/actions";
+import PromoHints from "./PromoHints";
+import { useCartQuote } from "./useCartQuote";
 
 type Props = { freeDeliveryFrom: number; deliveryPrice: number; giftText: string; mode: "cart" | "checkout" };
 
@@ -19,8 +21,10 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
   const [done, setDone] = useState<number | null>(null);
   const [pending, start] = useTransition();
 
-  const discount = applied ? Math.round((subtotal * applied.percent) / 100) : 0;
-  const ship = delivery === "pickup" || subtotal - discount >= freeDeliveryFrom ? 0 : deliveryPrice;
+  const quote = useCartQuote(lines);
+  const codeDiscount = applied ? Math.round(((subtotal - quote.total) * applied.percent) / 100) : 0;
+  const discount = quote.total + codeDiscount;
+  const ship = delivery === "pickup" || quote.freeDelivery || subtotal - discount >= freeDeliveryFrom ? 0 : deliveryPrice;
   const total = subtotal - discount + ship;
 
   if (done)
@@ -68,10 +72,12 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
       <p className="h-display text-2xl">Ваш заказ</p>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between"><span>Товары</span><span>{rub(subtotal)}</span></div>
-        {discount > 0 && <div className="flex justify-between text-rose"><span>Промокод {applied?.code}</span><span>−{rub(discount)}</span></div>}
+        {quote.discounts.map((d) => <div key={d.promoId} className="flex justify-between gap-3 text-rose"><span>{d.title}</span><span className="shrink-0">−{rub(d.amount)}</span></div>)}
+        {codeDiscount > 0 && <div className="flex justify-between text-rose"><span>Промокод {applied?.code}</span><span>−{rub(codeDiscount)}</span></div>}
         {mode === "checkout" && <div className="flex justify-between"><span>Доставка</span><span>{ship ? rub(ship) : "бесплатно"}</span></div>}
         <div className="flex items-center gap-2 text-rose"><GiftIcon className="h-4 w-4" /> Подарок: {giftText.toLowerCase()}</div>
       </div>
+      <PromoHints quote={quote} />
       <div className="flex gap-2">
         <input value={promo} onChange={(e) => setPromo(e.target.value)} placeholder="Промокод" className="input py-2.5" />
         <button type="button" onClick={applyPromo} className="btn-light px-4 py-2.5">ОК</button>

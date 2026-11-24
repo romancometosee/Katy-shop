@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { updateDb } from "./db";
 import { toView } from "./catalog";
 import type { Order } from "./types";
+import { quoteCart, type CartQuote } from "./promo";
 import { GIFT_BOX, GIFT_BOXES, WELCOME_BONUS, levelFor, normPhone, parseGiftCard } from "./club";
 
 export async function submitReview(fd: FormData) {
@@ -35,6 +36,18 @@ export async function checkPromoCode(code: string, subtotal: number) {
   if (!pc) return { ok: false as const, error: "Промокод не найден" };
   if (subtotal < pc.minTotal) return { ok: false as const, error: `Промокод действует от ${pc.minTotal} ₽` };
   return { ok: true as const, percent: pc.discountPercent, code: pc.code };
+}
+
+/** Скидки и подарки по акциям для корзины (цены берём с сервера, а не из браузера) */
+export async function quoteCartAction(items: { productId: string; variantId: string; qty: number }[]): Promise<CartQuote> {
+  const { getDb } = await import("./db");
+  const db = await getDb();
+  const priced = items.slice(0, 100).flatMap((it) => {
+    const p = db.products.find((x) => x.id === it.productId && x.isActive);
+    const v = p && toView(db, p).variants.find((x) => x.id === it.variantId);
+    return v ? [{ productId: it.productId, price: v.price, qty: Math.max(1, Math.min(99, Math.floor(it.qty))) }] : [];
+  });
+  return quoteCart(db, priced);
 }
 
 export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> {
@@ -69,16 +82,19 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
     }
     if (!items.length) return { ok: false as const, error: "Товары из корзины больше недоступны" };
     const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
-    let discount = 0;
+    // акции корзины: 3=2, подарки, ступенчатые скидки, бесплатная доставка
+    const quote = quoteCart(db, items.filter((i) => i.productId !== "gift-card" && i.productId !== GIFT_BOX.id));
+    let discount = quote.total;
     let promoCode: string | undefined;
     if (input.promoCode) {
       const pc = db.promoCodes.find((p) => p.isActive && p.code.toUpperCase() === input.promoCode!.trim().toUpperCase());
       if (pc && subtotal >= pc.minTotal) {
-        discount = Math.round((subtotal * pc.discountPercent) / 100);
+        discount += Math.round(((subtotal - quote.total) * pc.discountPercent) / 100);
         promoCode = pc.code;
       }
     }
-    const deliveryPrice = input.delivery === "pickup" || subtotal - discount >= db.settings.freeDeliveryFrom ? 0 : db.settings.deliveryPrice;
+    const promos = [...quote.discounts.map((d) => ({ title: d.title, amount: d.amount })), ...quote.gifts.map((g) => ({ title: g.title, amount: 0, gift: g.text }))];
+    const deliveryPrice = input.delivery === "pickup" || quote.freeDelivery || subtotal - discount >= db.settings.freeDeliveryFrom ? 0 : db.settings.deliveryPrice;
     const number = 1000 + db.orders.length + 1;
     // Клуб Katy: баллы за заказ участнику с этим телефоном
     const member = (db.members ?? []).find((m) => m.phone === normPhone(c.phone));
@@ -103,6 +119,7 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       deliveryPrice,
       total: subtotal - discount + deliveryPrice,
       promoCode,
+      promos: promos.length ? promos : undefined,
       gift: db.settings.giftText,
       status: "new",
     });

@@ -4,6 +4,7 @@ import PromoCountdown from "@/components/PromoCountdown";
 import { getDb } from "@/lib/db";
 import { isPromotionLive, promotionMatches } from "@/lib/catalog";
 import { dateRu } from "@/lib/format";
+import { promoHeadline, promoRules } from "@/lib/promo";
 
 export default async function PromoPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<SP> }) {
   const { slug } = await params;
@@ -24,7 +25,10 @@ export default async function PromoPage({ params, searchParams }: { params: Prom
       sp={sp}
       hero={
         <div className="mt-6 flex flex-col justify-between gap-4 rounded-3xl p-8 text-white sm:flex-row sm:items-center" style={{ background: promo.color }}>
-          <p className="h-display text-6xl">−{promo.discountPercent}%</p>
+          <div>
+            <p className="h-display text-6xl">{promoHeadline(promo)}</p>
+            <p className="mt-2 max-w-xl text-white/80">{promoRules(promo)}</p>
+          </div>
           {live && <PromoCountdown endsAt={promo.endsAt} />}
         </div>
       }

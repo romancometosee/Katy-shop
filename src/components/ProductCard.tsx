@@ -20,6 +20,7 @@ export default function ProductCard({ p }: { p: ProductView }) {
         <ProductImage images={p.images} art={p.art} label={p.brandName} className="transition duration-500 group-hover:scale-105" />
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
           {p.discountPercent > 0 && <span className="rounded-full bg-rose px-2.5 py-1 text-[11px] font-bold text-white">−{p.discountPercent}%</span>}
+          {p.promoBadges?.map((b) => <span key={b.text} className="rounded-full px-2.5 py-1 text-[11px] font-bold text-white" style={{ background: b.color }}>{b.text}</span>)}
           {p.isNew && <span className="rounded-full bg-ink px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white">Новинка</span>}
           {p.isHit && <span className="rounded-full bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white">Хит</span>}
         </div>

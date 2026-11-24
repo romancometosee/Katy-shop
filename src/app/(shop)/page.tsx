@@ -8,6 +8,8 @@ import ProductArt from "@/components/ProductArt";
 import PhotoFan from "@/components/PhotoFan";
 import { categoryImages, quizImages } from "@/lib/productImages";
 import PromoCountdown from "@/components/PromoCountdown";
+import { promoHeadline } from "@/lib/promo";
+import AdventTeaser from "@/components/AdventTeaser";
 import { GiftIcon, ShieldIcon, SparkIcon, TruckIcon, ChevronRight, StarIcon } from "@/components/Icons";
 import { getDb } from "@/lib/db";
 import { isPromotionLive, searchProducts, topCategories } from "@/lib/catalog";
@@ -39,7 +41,7 @@ export default async function HomePage() {
   const niche = searchProducts(db, { subcategory: "parfyumeriya--nishevaya" }).slice(0, 4);
   const nails = searchProducts(db, { category: "nogti" }).slice(0, 8);
   const hair = searchProducts(db, { category: "volosy" }).slice(0, 8);
-  const promos = db.promotions.filter((p) => isPromotionLive(p));
+  const promos = db.promotions.filter((p) => isPromotionLive(p) && !p.dayDeal);
   const popularBrands = db.brands.filter((b) => b.isPopular).slice(0, 12);
   const s = db.settings;
 
@@ -108,7 +110,7 @@ export default async function HomePage() {
                 <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/10 transition group-hover:scale-110" />
                 <div className="absolute -bottom-16 right-20 h-40 w-40 rounded-full bg-white/5" />
                 <div className="relative">
-                  <p className="h-display text-6xl">−{p.discountPercent}%</p>
+                  <p className="h-display text-6xl">{promoHeadline(p)}</p>
                   <p className="mt-2 text-2xl font-semibold">{p.title}</p>
                   <p className="mt-1 text-white/75">{p.subtitle}</p>
                 </div>
@@ -121,6 +123,8 @@ export default async function HomePage() {
           </div>
         </Section>
       )}
+
+      <AdventTeaser db={db} />
 
       <Section title="Новинки" kicker="Только что в магазине" href="/search?sort=new">
         <ProductRail products={news} />

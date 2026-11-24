@@ -12,6 +12,8 @@ import RecentlyViewed, { TrackView } from "@/components/RecentlyViewed";
 import { getDb } from "@/lib/db";
 import { genderLabel, routineFor, searchProducts, toView } from "@/lib/catalog";
 import RoutineBuilder from "@/components/RoutineBuilder";
+import { cartPromosFor, promoBadge, promoRules } from "@/lib/promo";
+import { dateRu } from "@/lib/format";
 import { submitReview } from "@/lib/actions";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -91,6 +93,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <ShadeDots shades={p.shades} current={p.slug} max={24} size="h-8 w-8" />
             </div>
           )}
+          {cartPromosFor(db, product).map((pr) => (
+            <Link key={pr.id} href={`/sale/${pr.slug}`} className="group mt-6 flex items-center gap-4 rounded-2xl border border-line bg-white p-4 transition hover:border-ink/30">
+              <span className="grid h-12 min-w-12 shrink-0 place-items-center rounded-xl px-2 text-sm font-bold text-white" style={{ background: pr.color }}>{promoBadge(pr)}</span>
+              <span className="text-sm">
+                <b className="block">{pr.title}</b>
+                <span className="text-ink-soft">{promoRules(pr)} До {dateRu(pr.endsAt)}</span>
+                <span className="mt-1 block text-xs font-semibold text-ink group-hover:text-rose">Все товары акции →</span>
+              </span>
+            </Link>
+          ))}
           <div className="mt-8">
             <ProductBuy p={p} giftText={db.settings.giftText} freeDeliveryFrom={db.settings.freeDeliveryFrom} />
           </div>

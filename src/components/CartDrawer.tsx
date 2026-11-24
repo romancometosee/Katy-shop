@@ -4,11 +4,15 @@ import { useCart } from "./CartProvider";
 import ProductImage from "./ProductImage";
 import { CloseIcon, GiftIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import { rub } from "@/lib/format";
+import PromoHints from "./PromoHints";
+import { useCartQuote } from "./useCartQuote";
 
 export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliveryFrom: number; giftText: string }) {
   const { lines, subtotal, setQty, remove, drawerOpen, setDrawerOpen } = useCart();
+  const quote = useCartQuote(lines, drawerOpen);
   if (!drawerOpen) return null;
-  const left = Math.max(0, freeDeliveryFrom - subtotal);
+  const total = subtotal - quote.total;
+  const left = quote.freeDelivery ? 0 : Math.max(0, freeDeliveryFrom - total);
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
@@ -37,6 +41,7 @@ export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliver
               ) : (
                 <p className="font-semibold text-emerald-700">Доставка бесплатная 🎉</p>
               )}
+              <PromoHints quote={quote} onNavigate={() => setDrawerOpen(false)} />
             </div>
             <ul className="flex-1 divide-y divide-line overflow-y-auto px-6">
               {lines.map((l) => (
@@ -65,9 +70,15 @@ export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliver
               ))}
             </ul>
             <div className="border-t border-line bg-white px-6 py-5">
+              {quote.discounts.map((d) => (
+                <div key={d.promoId} className="mb-1.5 flex items-center justify-between gap-3 text-sm text-rose">
+                  <span className="truncate">{d.title}</span>
+                  <span className="shrink-0">−{rub(d.amount)}</span>
+                </div>
+              ))}
               <div className="mb-4 flex items-center justify-between text-lg">
                 <span>Итого</span>
-                <span className="font-semibold">{rub(subtotal)}</span>
+                <span className="font-semibold">{rub(total)}</span>
               </div>
               <Link href="/checkout" onClick={() => setDrawerOpen(false)} className="btn-dark w-full">Оформить заказ</Link>
               <Link href="/cart" onClick={() => setDrawerOpen(false)} className="mt-2 block text-center text-sm text-ink-soft underline underline-offset-4">Перейти в корзину</Link>

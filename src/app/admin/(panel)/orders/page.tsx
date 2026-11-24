@@ -42,7 +42,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                   </tbody>
                 </table>
                 <div className="mt-3 space-y-1 text-right">
-                  {o.discount > 0 && <p>Скидка {o.promoCode}: −{rub(o.discount)}</p>}
+                  {o.promos?.map((pr, k) => <p key={k}>{pr.gift ? `🎁 Положить в заказ: ${pr.gift} (${pr.title})` : `${pr.title}: −${rub(pr.amount)}`}</p>)}
+                  {o.discount > 0 && <p>Скидка всего{o.promoCode ? ` (промокод ${o.promoCode})` : ""}: −{rub(o.discount)}</p>}
                   <p>Доставка: {o.deliveryPrice ? rub(o.deliveryPrice) : "бесплатно"}</p>
                   <p className="font-semibold">Итого: {rub(o.total)}</p>
                 </div>

@@ -7,7 +7,7 @@ import { ADMIN_COOKIE, adminPassword, tokenFor } from "./auth";
 import { resetDb, updateDb } from "./db";
 import { saveUploads } from "./uploads";
 import { slugify } from "./slug";
-import type { ArtShape, Banner, Gender, OrderStatus, Product, Promotion, PromotionScope, Settings, Variant } from "./types";
+import type { ArtShape, Banner, Gender, OrderStatus, Product, Promotion, PromotionKind, PromotionScope, Settings, Variant } from "./types";
 
 async function requireAdmin() {
   const token = (await cookies()).get(ADMIN_COOKIE)?.value;
@@ -234,27 +234,64 @@ export async function savePromotion(fd: FormData) {
   await requireAdmin();
   const id = str(fd, "id");
   const scope = str(fd, "scope") as PromotionScope;
+  const kinds: PromotionKind[] = ["percent", "bundle", "gift", "tiers", "delivery"];
+  const kind = kinds.includes(str(fd, "kind") as PromotionKind) ? (str(fd, "kind") as PromotionKind) : "percent";
+  // даты из формы — по московскому времени, последний день акции включительно
+  const day = (k: string, fallback: number) => (/^\d{4}-\d{2}-\d{2}$/.test(str(fd, k)) ? str(fd, k) : new Date(fallback).toISOString().slice(0, 10));
+  const buyQty = Math.min(10, Math.max(2, Math.round(num(fd, "buyQty")) || 3));
   const data: Omit<Promotion, "id" | "slug"> = {
     title: str(fd, "title"),
     subtitle: str(fd, "subtitle"),
     discountPercent: Math.min(90, Math.max(1, Math.round(num(fd, "discountPercent")))),
     scope,
     targetIds: scope === "all" ? [] : (fd.getAll(`targets-${scope}`) as string[]).filter(Boolean),
-    startsAt: new Date(str(fd, "startsAt") || Date.now()).toISOString(),
-    endsAt: new Date(str(fd, "endsAt") || Date.now() + 7 * 86400000).toISOString(),
+    startsAt: new Date(`${day("startsAt", Date.now())}T00:00:00+03:00`).toISOString(),
+    endsAt: new Date(`${day("endsAt", Date.now() + 7 * 86400000)}T23:59:59+03:00`).toISOString(),
     isActive: bool(fd, "isActive"),
     color: str(fd, "color") || "#1c1917",
+    kind,
+    ...(kind === "bundle" ? { buyQty, payQty: Math.min(buyQty - 1, Math.max(1, Math.round(num(fd, "payQty")) || buyQty - 1)) } : {}),
+    ...(kind === "gift" || kind === "delivery" ? { minTotal: Math.max(0, Math.round(num(fd, "minTotal"))) } : {}),
+    ...(kind === "gift" ? { giftText: str(fd, "giftText").slice(0, 120) } : {}),
+    ...(kind === "tiers"
+      ? { tiers: [0, 1, 2].map((i) => ({ from: Math.max(0, Math.round(num(fd, `tierFrom${i}`))), percent: Math.min(90, Math.max(0, Math.round(num(fd, `tierPercent${i}`)))) })).filter((t) => t.percent > 0).sort((a, b) => a.from - b.from) }
+      : {}),
+    ...(bool(fd, "dayDeal") ? { dayDeal: true } : {}),
   };
   if (!data.title) return;
   await updateDb((db) => {
     const p = db.promotions.find((x) => x.id === id);
-    if (p) Object.assign(p, data);
-    else {
+    if (p) {
+      // поля другой механики не оставляем
+      for (const k of ["buyQty", "payQty", "minTotal", "giftText", "tiers"] as const) delete p[k];
+      Object.assign(p, data);
+    } else {
       const slug = uniqueSlug(slugify(data.title), db.promotions.map((x) => x.slug));
       db.promotions.unshift({ id: slug, slug, ...data });
     }
   });
   done("/admin/promotions");
+}
+
+/** Адвент-календарь: 24 товара дня на декабрь */
+export async function saveAdvent(fd: FormData) {
+  await requireAdmin();
+  const { ADVENT_DAYS, adventId, adventPromotion, autoAdvent } = await import("./advent");
+  const year = Math.round(num(fd, "year"));
+  const auto = str(fd, "auto") === "1";
+  await updateDb((db) => {
+    const autoList = auto ? autoAdvent(db, year) : [];
+    for (let day = 1; day <= ADVENT_DAYS; day++) {
+      const id = adventId(year, day);
+      const slug = auto ? undefined : str(fd, `slug${day}`);
+      const fromAuto = autoList.find((p) => p.id === id);
+      const productId = auto ? fromAuto?.targetIds[0] : db.products.find((p) => p.slug === slug)?.id;
+      const percent = auto ? fromAuto?.discountPercent ?? 20 : num(fd, `percent${day}`) || 20;
+      db.promotions = db.promotions.filter((p) => p.id !== id);
+      if (productId) db.promotions.push(adventPromotion(year, day, productId, percent));
+    }
+  });
+  done("/admin/promotions/advent");
 }
 
 export async function deletePromotion(fd: FormData) {

@@ -1,5 +1,6 @@
 // Работа с каталогом: цены с учётом акций, фильтры, поиск
 import type { Database, Product, Promotion, Category, Gender } from "./types";
+import { cartPromosFor, promoBadge } from "./promo";
 
 export type PricedVariant = {
   id: string;
@@ -26,6 +27,8 @@ export type ProductView = {
   oldPrice?: number;
   discountPercent: number;
   promoTitle?: string;
+  /** плашки акций «3=2», «Подарок» и т.п. */
+  promoBadges?: { text: string; color: string }[];
   isHit: boolean;
   isNew: boolean;
   rating: number;
@@ -83,7 +86,7 @@ export function promotionMatches(p: Promotion, product: Product) {
 
 export function bestPromotion(db: Database, product: Product): Promotion | undefined {
   return db.promotions
-    .filter((p) => isPromotionLive(p) && promotionMatches(p, product))
+    .filter((p) => (p.kind ?? "percent") === "percent" && isPromotionLive(p) && promotionMatches(p, product))
     .sort((a, b) => b.discountPercent - a.discountPercent)[0];
 }
 
@@ -117,6 +120,10 @@ export function toView(db: Database, product: Product): ProductView {
     oldPrice: cheapest?.oldPrice,
     discountPercent: Math.max(pct, ownDiscount),
     promoTitle: promo?.title,
+    ...(() => {
+      const extra = cartPromosFor(db, product);
+      return extra.length ? { promoBadges: extra.map((x) => ({ text: promoBadge(x), color: x.color })) } : {};
+    })(),
     isHit: product.isHit,
     isNew: product.isNew,
     rating: product.rating,
@@ -192,7 +199,7 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
     }
   }
   let views = list.map((p) => toView(db, p));
-  if (f.sale) views = views.filter((v) => v.discountPercent > 0);
+  if (f.sale) views = views.filter((v) => v.discountPercent > 0 || v.promoBadges);
   if (f.priceMin !== undefined) views = views.filter((v) => v.price >= f.priceMin!);
   if (f.priceMax !== undefined) views = views.filter((v) => v.price <= f.priceMax!);
   const created = new Map(list.map((p) => [p.id, p.createdAt]));

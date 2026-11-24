@@ -1,6 +1,7 @@
 // Хранилище данных магазина. Сами данные лежат либо в файле data/db.json (обычный сервер),
 // либо в Cloudflare KV — см. storage.ts. При первом запуске загружается демо-каталог.
-import { createSeed } from "./seed";
+import { DEMO_PROMOTIONS, createSeed as baseSeed } from "./seed";
+import { autoAdvent, hasAdvent } from "./advent";
 import { isKv, readDb, writeDb } from "./storage";
 import type { Database } from "./types";
 import { productImages } from "./productImages";
@@ -17,7 +18,14 @@ let cache: Database | null = null;
 let loading: Promise<Database> | null = null;
 let queue: Promise<unknown> = Promise.resolve();
 
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
+
+/** Демо-данные + заполненный адвент-календарь */
+function createSeed() {
+  const s = baseSeed();
+  s.promotions.push(...autoAdvent(s));
+  return s;
+}
 
 /** Добавляет в сохранённые данные новые разделы, бренды и товары из обновлений сайта (ничего не удаляет и не меняет) */
 function upgrade(db: Database): boolean {
@@ -34,6 +42,11 @@ function upgrade(db: Database): boolean {
   for (const c of db.categories) {
     const s = seed.categories.find((x) => x.id === c.id);
     if (s && !c.parentId) c.order = s.order;
+  }
+  // версия 3: пример акции «3 = 2» и заполненный адвент-календарь
+  if ((db.seedVersion ?? 1) < 3) {
+    add(db.promotions, DEMO_PROMOTIONS());
+    if (!hasAdvent(db)) db.promotions.push(...autoAdvent(db));
   }
   db.seedVersion = SEED_VERSION;
   return true;

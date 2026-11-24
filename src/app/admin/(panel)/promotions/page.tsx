@@ -3,6 +3,7 @@ import { PageHead } from "@/components/admin/ui";
 import { getDb } from "@/lib/db";
 import { isPromotionLive, promotionMatches } from "@/lib/catalog";
 import { dateRu } from "@/lib/format";
+import { KIND_NAMES, kindOf, promoHeadline } from "@/lib/promo";
 import { deletePromoCode, savePromoCode } from "@/lib/admin-actions";
 
 export default async function PromotionsAdmin() {
@@ -10,13 +11,17 @@ export default async function PromotionsAdmin() {
   return (
     <div>
       <PageHead title="Акции и промокоды" desc="Акция автоматически снижает цены на выбранные товары на сайте и показывает таймер. Промокод покупатель вводит в корзине." action={{ href: "/admin/promotions/new", label: "+ Новая акция" }} />
+      <Link href="/admin/promotions/advent" className="mb-6 flex items-center justify-between gap-4 rounded-3xl border border-line bg-white p-5 transition hover:border-ink/30">
+        <span><b className="block text-lg">✦ Адвент-календарь Katy</b><span className="text-sm text-ink-soft">24 товара дня на декабрь: каждый день новое окошко со скидкой</span></span>
+        <span className="text-sm font-semibold">Настроить →</span>
+      </Link>
       <div className="grid gap-4 md:grid-cols-2">
-        {db.promotions.map((p) => {
+        {db.promotions.filter((p) => !p.id.startsWith("advent-")).map((p) => {
           const live = isPromotionLive(p);
           const n = db.products.filter((x) => promotionMatches(p, x)).length;
           return (
             <Link key={p.id} href={`/admin/promotions/${p.id}`} className="flex gap-5 rounded-3xl p-6 text-white transition hover:opacity-95" style={{ background: p.color }}>
-              <p className="h-display text-5xl">−{p.discountPercent}%</p>
+              <div className="shrink-0"><p className="h-display text-5xl">{promoHeadline(p)}</p><p className="mt-1 text-[11px] uppercase tracking-wider text-white/70">{KIND_NAMES[kindOf(p)]}</p></div>
               <div className="flex-1">
                 <p className="text-lg font-semibold">{p.title}</p>
                 <p className="text-sm text-white/75">{p.subtitle}</p>
