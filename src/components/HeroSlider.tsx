@@ -36,11 +36,11 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
               </div>
               {!b.image && (
                 bannerImages[b.theme]?.length ? (
-                <div className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-1/2 items-center justify-center gap-6 pr-10 md:flex">
+                <div className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-[46%] items-center justify-end gap-5 pr-12 lg:flex">
                   {bannerImages[b.theme].slice(0, 2).map((src, k) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <div key={src} className={`katy-float flex aspect-[3/4] w-[38%] items-center justify-center rounded-[1.75rem] bg-white/95 p-5 shadow-2xl ${k ? "mt-24 [animation-delay:-3s]" : "-mt-10"}`}>
-                      <img src={src} alt="" referrerPolicy="no-referrer" className="h-full w-full object-contain mix-blend-multiply" />
+                    <div key={src} className={`katy-float flex aspect-[3/4] w-[40%] max-w-[230px] items-center justify-center rounded-[1.75rem] bg-white p-5 shadow-2xl ${k ? "mt-24 [animation-delay:-3s]" : "-mt-10"}`}>
+                      <img src={src} alt="" referrerPolicy="no-referrer" className="h-full w-full object-contain mix-blend-multiply brightness-[1.08] contrast-[1.03]" />
                     </div>
                   ))}
                 </div>

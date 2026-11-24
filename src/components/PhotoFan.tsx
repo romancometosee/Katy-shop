@@ -6,19 +6,19 @@
 export default function PhotoFan({ images, className = "" }: { images: string[]; className?: string }) {
   const [a, b, c] = images;
   if (!a) return null;
-  const img = "absolute bottom-0 h-full w-[46%] object-contain mix-blend-multiply transition duration-700 ease-out";
+  const img = "absolute bottom-0 h-full w-[46%] object-contain mix-blend-multiply brightness-[1.08] contrast-[1.03] transition duration-700 ease-out";
   return (
     <div className={`pointer-events-none relative ${className}`}>
       {b && (
         <img src={b} alt="" loading="lazy" referrerPolicy="no-referrer"
-          className={`${img} left-[4%] origin-bottom -rotate-[8deg] scale-[.82] opacity-90 group-hover:-translate-x-[6%] group-hover:-rotate-[13deg]`} />
+          className={`${img} ${c ? "left-[4%]" : "left-[14%]"} origin-bottom -rotate-[8deg] scale-[.82] opacity-90 group-hover:-translate-x-[6%] group-hover:-rotate-[13deg]`} />
       )}
       {c && (
         <img src={c} alt="" loading="lazy" referrerPolicy="no-referrer"
           className={`${img} right-[4%] origin-bottom rotate-[8deg] scale-[.82] opacity-90 group-hover:translate-x-[6%] group-hover:rotate-[13deg]`} />
       )}
       <img src={a} alt="" loading="lazy" referrerPolicy="no-referrer"
-        className={`${img} left-1/2 z-10 -translate-x-1/2 group-hover:-translate-y-[4%] group-hover:scale-105`} />
+        className={`${img} ${c ? "left-1/2" : "left-[60%]"} z-10 -translate-x-1/2 group-hover:-translate-y-[4%] group-hover:scale-105`} />
     </div>
   );
 }

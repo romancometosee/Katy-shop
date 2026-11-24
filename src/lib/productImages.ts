@@ -33,7 +33,6 @@ export const productImages: Record<string, string> = {
   "creed-aventus": "https://static.thcdn.com/productimg/original/12870029-4495381423082822.jpg",
   "le-labo-santal-33": "https://lelabo.ips.photos/lelabo-java/images/skus/050PS33100__PRODUCT_01--IMG_1200--SANTAL33-200129705.jpg",
   "le-labo-another-13": "https://lelabo.ips.photos/lelabo-java/images/skus/050PA13100__PRODUCT_01--IMG_1200--ANOTHER13--122019503.jpg",
-  "kilian-paris-angels-share": "https://www.bykilian.com/media/images/products/833x968/kl_sku_N3KC01_833x968_0.jpg",
   "ex-nihilo-fleur-narcotique": "https://cdn.shopify.com/s/files/1/0873/6250/3001/files/w-ex-nihilo-fleur-narcotique-eau-de-parfum-100ml.png?width=800",
   "escentric-molecules-molecule-01": "https://www.escentric.com/cdn/shop/files/M01_100ml_Solo_St_On_Bottle_OnBaseLine.jpg?width=800",
   "juliette-has-a-gun-not-a-perfume": "https://us.juliettehasagun.com/cdn/shop/files/03_Not_A_Perfume_Packshot_bestseller_200ml_fcfa45e3-d48a-431b-9ecf-0962fa34460d_1000x1000_crop_center.jpg",
@@ -58,7 +57,6 @@ export const productImages: Record<string, string> = {
   "sol-de-janeiro-krem-dlya-tela-brazilian-bum-bum": "https://cdn.shopify.com/s/files/1/2826/2250/files/01_SDJ_PPage_DTC_BB_BC_240ML_OVERHEAD_RGB_1452X1452_cb5b3d96-578a-4163-8c34-8c815fc465eb.jpg?width=800",
   "moroccanoil-maslo-moroccanoil-treatment": "https://cdn.shopify.com/s/files/1/0735/2582/1755/files/153_TREATMENT_ORIGINAL_100mL_v2_237139c5-fb67-4169-89c4-6a6adfbb7b0b.jpg?width=800",
   "moroccanoil-sprey-dlya-obema-volumizing-mist": "https://cdn.shopify.com/s/files/1/0735/2582/1755/files/108_STYLE-FINISHER_VOLUMIZING-MIST_160mL_v2_de10bb61-2928-4107-842f-2a176f1525bf.jpg?width=800",
-  "rituals-pena-dlya-dusha-the-ritual-of-sakura": "https://rituals.scene7.com/is/image/rituals/1115587-sa24001-sakura-foamingshowergel-200ml:4-by-3?wid=800",
 };
 
 const pick = (...ids: string[]) => ids.map((id) => productImages[id]).filter(Boolean);
@@ -68,8 +66,8 @@ export const categoryImages: Record<string, string[]> = {
   parfyumeriya: pick("chanel-coco-mademoiselle-eau-de-parfum", "maison-francis-kurkdjian-baccarat-rouge-540-eau-de-parfum", "dior-sauvage-eau-de-parfum"),
   "uhod-za-licom": pick("la-roche-posay-hyalu-b5-syvorotka", "estee-lauder-advanced-night-repair", "caudalie-beauty-elixir"),
   makiyazh: pick("yves-saint-laurent-rouge-pur-couture", "charlotte-tilbury-paletka-teney-pillow-talk", "benefit-tush-they-re-real"),
-  volosy: pick("olaplex-no-3-hair-perfector", "kerastase-elixir-ultime-l-huile-originale", "moroccanoil-maslo-moroccanoil-treatment"),
-  telo: pick("sol-de-janeiro-dymka-dlya-tela-cheirosa-62", "sol-de-janeiro-krem-dlya-tela-brazilian-bum-bum", "rituals-pena-dlya-dusha-the-ritual-of-sakura"),
+  volosy: pick("olaplex-no-3-hair-perfector", "kerastase-elixir-ultime-l-huile-originale", "kerastase-elixir-ultime-shampun"),
+  telo: pick("sol-de-janeiro-dymka-dlya-tela-cheirosa-62", "sol-de-janeiro-krem-dlya-tela-brazilian-bum-bum"),
   nabory: pick("dior-nabor-sauvage-parfyum-gel-dlya-dusha", "chanel-nabor-coco-mademoiselle-aromat-krem-dlya-tela", "maison-francis-kurkdjian-nabor-miniatyur-bestsellery-nishi-5-2-ml"),
 };
 
