@@ -89,98 +89,8 @@ export default async function CompareDemo() {
       <h1 className="h-display mt-2 text-5xl">Сравнение товаров</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">В каждой карточке товара появится галочка «Сравнить». Отмечаете 2–4 аромата или шампуня, внизу экрана появляется панель «Сравнить (3)», и открывается таблица, где всё видно рядом: цена, ноты, стойкость, для каких волос и так далее.</p>
 
-      <h2 className="h-display mt-12 text-3xl">Ароматы</h2>
-      <div className="mt-4">
-        <Table
-          items={perf}
-          best={PERFUMES[0]}
-          rows={[
-            ["Цена", (p) => <b>{p.variants.length > 1 ? "от " : ""}{rub(p.price)}</b>],
-            ["Семейство", (p) => p.family ?? "—"],
-            ["Верхние ноты", (p) => notes(p, "top")],
-            ["Ноты сердца", (p) => notes(p, "heart")],
-            ["Базовые ноты", (p) => notes(p, "base")],
-            ["Стойкость", (p) => <Dots n={Number(perfumeExtra[p.slug]?.["Стойкость"] ?? 3)} />],
-            ["Шлейф", (p) => <Dots n={Number(perfumeExtra[p.slug]?.["Шлейф"] ?? 3)} />],
-            ["Сезон", (p) => perfumeExtra[p.slug]?.["Сезон"] ?? "—"],
-            ["Время", (p) => perfumeExtra[p.slug]?.["Время"] ?? "—"],
-            ["Рейтинг", (p) => `★ ${p.rating.toFixed(1)} · ${p.reviewsCount} отз.`],
-          ]}
-        />
-      </div>
-
-      <h2 className="h-display mt-14 text-3xl">Шампуни</h2>
-      <div className="mt-4">
-        <Table
-          items={sh}
-          rows={[
-            ["Цена", (p) => <b>{rub(p.price)}</b>],
-            ["Объём", (p) => p.variants[0].label],
-            ["Цена за 100 мл", per100],
-            ...Object.keys(shampooExtra[SHAMPOOS[0]]).map((k) => [k, (p: ProductView) => shampooExtra[p.slug]?.[k] ?? "—"] as [string, (p: ProductView) => React.ReactNode]),
-            ["Рейтинг", (p) => `★ ${p.rating.toFixed(1)} · ${p.reviewsCount} отз.`],
-          ]}
-        />
-      </div>
-
-    </div>
-  );
-}
-
-export default async function CompareDemo() {
-  const db = await getDb();
-  const perf = get(db, PERFUMES);
-  const sh = get(db, SHAMPOOS);
-  const notes = (p: ProductView, k: "top" | "heart" | "base") => db.products.find((x) => x.id === p.id)?.notes?.[k].join(", ") ?? "—";
-  const per100 = (p: ProductView) => {
-    const v = p.variants[0];
-    const ml = parseInt(v.label);
-    return ml ? rub((v.price / ml) * 100) : "—";
-  };
-  return (
-    <div className="container-x pb-16 pt-8">
-      <div className="rounded-2xl border border-dashed border-rose bg-[#fdf1f2] px-5 py-3 text-sm text-rose">Это макет для обсуждения. На сайте его пока нет, характеристики примерные.</div>
-
-      <p className="mt-10 text-xs font-semibold uppercase tracking-[.28em] text-rose">Как это работает</p>
-      <h1 className="h-display mt-2 text-5xl">Сравнение товаров</h1>
-      <p className="mt-3 max-w-2xl text-ink-soft">В каждой карточке товара появится галочка «Сравнить». Отмечаете 2–4 аромата или шампуня, внизу экрана появляется панель «Сравнить (3)», и открывается таблица, где всё видно рядом: цена, ноты, стойкость, для каких волос и так далее.</p>
-
-      <h2 className="h-display mt-12 text-3xl">Ароматы</h2>
-      <div className="mt-4">
-        <Table
-          items={perf}
-          best={PERFUMES[0]}
-          rows={[
-            ["Цена", (p) => <b>{p.variants.length > 1 ? "от " : ""}{rub(p.price)}</b>],
-            ["Семейство", (p) => p.family ?? "—"],
-            ["Верхние ноты", (p) => notes(p, "top")],
-            ["Ноты сердца", (p) => notes(p, "heart")],
-            ["Базовые ноты", (p) => notes(p, "base")],
-            ["Стойкость", (p) => <Dots n={Number(perfumeExtra[p.slug]?.["Стойкость"] ?? 3)} />],
-            ["Шлейф", (p) => <Dots n={Number(perfumeExtra[p.slug]?.["Шлейф"] ?? 3)} />],
-            ["Сезон", (p) => perfumeExtra[p.slug]?.["Сезон"] ?? "—"],
-            ["Время", (p) => perfumeExtra[p.slug]?.["Время"] ?? "—"],
-            ["Рейтинг", (p) => `★ ${p.rating.toFixed(1)} · ${p.reviewsCount} отз.`],
-          ]}
-        />
-      </div>
-
-      <h2 className="h-display mt-14 text-3xl">Шампуни</h2>
-      <div className="mt-4">
-        <Table
-          items={sh}
-          rows={[
-            ["Цена", (p) => <b>{rub(p.price)}</b>],
-            ["Объём", (p) => p.variants[0].label],
-            ["Цена за 100 мл", per100],
-            ...Object.keys(shampooExtra[SHAMPOOS[0]]).map((k) => [k, (p: ProductView) => shampooExtra[p.slug]?.[k] ?? "—"] as [string, (p: ProductView) => React.ReactNode]),
-            ["Рейтинг", (p) => `★ ${p.rating.toFixed(1)} · ${p.reviewsCount} отз.`],
-          ]}
-        />
-      </div>
-
-      {/* так будет выглядеть панель внизу экрана */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 py-3 shadow-2xl backdrop-blur">
+      <p className="mt-8 text-xs font-semibold uppercase tracking-wider text-ink-soft">Так выглядит панель внизу экрана, когда товары отмечены:</p>
+      <div className="mt-6 rounded-2xl border border-line bg-white py-3 shadow-xl">
         <div className="container-x flex items-center gap-3">
           <span className="text-sm font-semibold">Сравнение</span>
           {perf.map((p) => (
@@ -192,6 +102,40 @@ export default async function CompareDemo() {
           <Link href="#" className="btn-dark ml-auto px-6 py-2.5">Сравнить (3)</Link>
         </div>
       </div>
+      <h2 className="h-display mt-12 text-3xl">Ароматы</h2>
+      <div className="mt-4">
+        <Table
+          items={perf}
+          best={PERFUMES[0]}
+          rows={[
+            ["Цена", (p) => <b>{p.variants.length > 1 ? "от " : ""}{rub(p.price)}</b>],
+            ["Семейство", (p) => p.family ?? "—"],
+            ["Верхние ноты", (p) => notes(p, "top")],
+            ["Ноты сердца", (p) => notes(p, "heart")],
+            ["Базовые ноты", (p) => notes(p, "base")],
+            ["Стойкость", (p) => <Dots n={Number(perfumeExtra[p.slug]?.["Стойкость"] ?? 3)} />],
+            ["Шлейф", (p) => <Dots n={Number(perfumeExtra[p.slug]?.["Шлейф"] ?? 3)} />],
+            ["Сезон", (p) => perfumeExtra[p.slug]?.["Сезон"] ?? "—"],
+            ["Время", (p) => perfumeExtra[p.slug]?.["Время"] ?? "—"],
+            ["Рейтинг", (p) => `★ ${p.rating.toFixed(1)} · ${p.reviewsCount} отз.`],
+          ]}
+        />
+      </div>
+
+      <h2 className="h-display mt-14 text-3xl">Шампуни</h2>
+      <div className="mt-4">
+        <Table
+          items={sh}
+          rows={[
+            ["Цена", (p) => <b>{rub(p.price)}</b>],
+            ["Объём", (p) => p.variants[0].label],
+            ["Цена за 100 мл", per100],
+            ...Object.keys(shampooExtra[SHAMPOOS[0]]).map((k) => [k, (p: ProductView) => shampooExtra[p.slug]?.[k] ?? "—"] as [string, (p: ProductView) => React.ReactNode]),
+            ["Рейтинг", (p) => `★ ${p.rating.toFixed(1)} · ${p.reviewsCount} отз.`],
+          ]}
+        />
+      </div>
+
     </div>
   );
 }
