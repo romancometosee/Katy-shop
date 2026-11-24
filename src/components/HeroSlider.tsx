@@ -5,6 +5,7 @@ import ProductArt from "./ProductArt";
 import { ChevronLeft, ChevronRight } from "./Icons";
 import type { Banner } from "@/lib/types";
 import { bannerThemes } from "@/lib/bannerThemes";
+import { bannerImages } from "@/lib/productImages";
 
 
 export default function HeroSlider({ banners }: { banners: Banner[] }) {
@@ -34,11 +35,22 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
                 <Link href={b.link} className={`btn mt-8 ${t.btn}`}>{b.buttonText}</Link>
               </div>
               {!b.image && (
+                bannerImages[b.theme]?.length ? (
+                <div className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-1/2 items-center justify-center gap-6 pr-10 md:flex">
+                  {bannerImages[b.theme].slice(0, 2).map((src, k) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <div key={src} className={`katy-float flex aspect-[3/4] w-[38%] items-center justify-center rounded-[1.75rem] bg-white/95 p-5 shadow-2xl ${k ? "mt-24 [animation-delay:-3s]" : "-mt-10"}`}>
+                      <img src={src} alt="" referrerPolicy="no-referrer" className="h-full w-full object-contain mix-blend-multiply" />
+                    </div>
+                  ))}
+                </div>
+                ) : (
                 <div className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-1/2 items-end justify-center md:flex">
                   <ProductArt shape={b.artShape} color={t.art[0]} accent={t.art[1]} withBg={false} className="absolute bottom-6 right-[30%] h-[78%] drop-shadow-2xl" />
                   <ProductArt shape="flacon-tall" color={t.art[1]} accent={t.art[0]} withBg={false} className="absolute bottom-6 right-[8%] h-[58%] opacity-90 drop-shadow-xl" />
                   <div className="absolute right-[18%] top-[14%] h-40 w-40 rounded-full bg-white/20 blur-2xl" />
                 </div>
+                )
               )}
             </div>
           );

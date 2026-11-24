@@ -11,3 +11,4 @@ data/db.json
 .open-next
 .wrangler
 .dev.vars
+tmpimg/

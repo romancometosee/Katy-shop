@@ -78,3 +78,15 @@ body {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
+
+/* лёгкое «парение» фото флаконов на баннерах */
+@keyframes katy-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-14px) rotate(1deg); }
+}
+.katy-float {
+  animation: katy-float 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .katy-float { animation: none; }
+}

@@ -3,6 +3,8 @@ import HeroSlider from "@/components/HeroSlider";
 import Section from "@/components/Section";
 import ProductRail from "@/components/ProductRail";
 import ProductArt from "@/components/ProductArt";
+import PhotoFan from "@/components/PhotoFan";
+import { categoryImages, quizImages } from "@/lib/productImages";
 import PromoCountdown from "@/components/PromoCountdown";
 import { GiftIcon, ShieldIcon, SparkIcon, TruckIcon, ChevronRight, StarIcon } from "@/components/Icons";
 import { getDb } from "@/lib/db";
@@ -63,7 +65,11 @@ export default async function HomePage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
           {cats.map((c) => (
             <Link key={c.id} href={`/catalog/${c.slug}`} className="group relative flex aspect-[3/4] flex-col overflow-hidden rounded-3xl" style={{ background: c.art.bg }}>
-              <ProductArt {...c.art} withBg={false} className="mx-auto mt-4 h-[62%] transition duration-500 group-hover:-translate-y-1 group-hover:scale-105" />
+              {categoryImages[c.slug]?.length ? (
+                <PhotoFan images={categoryImages[c.slug]} className="mx-3 mt-5 h-[58%]" />
+              ) : (
+                <ProductArt {...c.art} withBg={false} className="mx-auto mt-4 h-[62%] transition duration-500 group-hover:-translate-y-1 group-hover:scale-105" />
+              )}
               <div className="mt-auto p-4">
                 <p className="h-display text-2xl leading-tight">{c.name}</p>
                 <p className="mt-1 flex items-center text-xs font-semibold text-ink-soft">
@@ -115,11 +121,9 @@ export default async function HomePage() {
             <p className="mt-4 text-ink-soft">Ответьте на 4 простых вопроса — мы подберём ароматы под ваш характер, сезон и любимые ноты. А в заказ положим пробники, чтобы вы точно не ошиблись.</p>
             <Link href="/podbor" className="btn-dark mt-8">Подобрать аромат</Link>
           </div>
-          <div className="pointer-events-none mt-10 flex items-end justify-center gap-2 lg:mt-0">
-            <ProductArt shape="flacon-round" color="#f6c7cf" accent="#c9a46a" withBg={false} className="h-40 sm:h-52" />
-            <ProductArt shape="flacon-tall" color="#c8433d" accent="#d4af37" withBg={false} className="h-56 sm:h-72" />
-            <ProductArt shape="flacon-square" color="#e9dccb" accent="#1c1917" withBg={false} className="h-44 sm:h-56" />
-          </div>
+          <Link href="/podbor" className="group mt-10 block h-64 w-full max-w-md sm:h-80 lg:mt-0">
+            <PhotoFan images={quizImages} className="h-full w-full" />
+          </Link>
         </div>
       </section>
 

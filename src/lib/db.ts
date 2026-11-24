@@ -3,6 +3,15 @@
 import { createSeed } from "./seed";
 import { isKv, readDb, writeDb } from "./storage";
 import type { Database } from "./types";
+import { productImages } from "./productImages";
+
+/** Если у товара нет своего фото — подставляем официальное фото бренда */
+function withImages(db: Database): Database {
+  for (const p of db.products) {
+    if (!p.images?.length && productImages[p.id]) p.images = [productImages[p.id]];
+  }
+  return db;
+}
 
 let cache: Database | null = null;
 let loading: Promise<Database> | null = null;
@@ -10,8 +19,8 @@ let queue: Promise<unknown> = Promise.resolve();
 
 async function load(): Promise<Database> {
   const db = await readDb();
-  if (db) return db;
-  const seed = createSeed();
+  if (db) return withImages(db);
+  const seed = withImages(createSeed());
   await writeDb(seed);
   return seed;
 }
@@ -37,7 +46,7 @@ export async function updateDb<T>(fn: (db: Database) => T | Promise<T>): Promise
 }
 
 export async function resetDb() {
-  const seed = createSeed();
+  const seed = withImages(createSeed());
   if (!isKv()) cache = seed;
   await writeDb(seed);
 }

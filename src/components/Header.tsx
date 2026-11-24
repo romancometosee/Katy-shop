@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "./CartProvider";
 import ProductArt from "./ProductArt";
+import PhotoFan from "./PhotoFan";
+import { categoryImages } from "@/lib/productImages";
 import { BagIcon, ChevronDown, ChevronRight, CloseIcon, HeartIcon, MenuIcon, SearchIcon } from "./Icons";
 import type { ProductArt as Art } from "@/lib/types";
 
@@ -143,7 +145,11 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
                       <p className="mt-2 text-sm text-ink-soft">{item.description}</p>
                       <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold">Перейти <ChevronRight className="h-4 w-4" /></span>
                     </div>
-                    <ProductArt {...item.art} withBg={false} className="h-48 w-40 shrink-0" />
+                    {categoryImages[item.href.split("/").pop() ?? ""]?.length ? (
+                      <PhotoFan images={categoryImages[item.href.split("/").pop() ?? ""]} className="h-48 w-56 shrink-0 self-end" />
+                    ) : (
+                      <ProductArt {...item.art} withBg={false} className="h-48 w-40 shrink-0" />
+                    )}
                   </Link>
                 </div>
               </div>
