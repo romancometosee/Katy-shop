@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import PhotoFan from "./PhotoFan";
-import { SearchIcon } from "./Icons";
+import VoiceSearchForm from "./VoiceSearchForm";
 import { AskKatyButton } from "./AskKaty";
 import type { Category } from "@/lib/types";
 import { categoryImages } from "@/lib/productImages";
@@ -41,11 +41,7 @@ export default function TitleScreen({ categories, brands }: { categories: Catego
             Оригинальная косметика и парфюмерия любимых брендов. Выбирайте спокойно — мы поможем подобрать и бережно доставим.
           </p>
 
-          <form action="/search" className="mt-8 flex max-w-lg items-center gap-2 rounded-full border border-line bg-white p-1.5 pl-5 shadow-sm focus-within:border-ink">
-            <SearchIcon className="h-5 w-5 shrink-0 text-ink-soft" />
-            <input name="q" placeholder="Например, гель-лак OPI или Baccarat Rouge" className="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none" />
-            <button className="btn-dark shrink-0 px-6 py-2.5">Найти</button>
-          </form>
+          <VoiceSearchForm placeholder="Например, гель-лак OPI или Baccarat Rouge" />
           <AskKatyButton className="group mt-3 inline-flex items-center gap-2 rounded-full px-1 py-1 text-sm text-ink-soft transition hover:text-ink">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#f2b8c0] to-[#e8c98f] text-[11px] text-ink">✦</span>
             Не знаете, что выбрать? <span className="font-semibold text-ink underline decoration-rose/40 underline-offset-4 group-hover:decoration-rose">Спросите Katy</span>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { searchProducts } from "@/lib/catalog";
+import { queryStems, searchProducts } from "@/lib/catalog";
 
 // Товары по списку id (для избранного) или по фильтрам (для подбора аромата)
 export async function GET(req: Request) {
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   // запасной поиск по отдельным словам (когда консультант выключен)
   const words = url.searchParams.get("words");
   if (words !== null) {
-    const ws = words.toLowerCase().replace(/ё/g, "е").split(/[^a-zа-я0-9]+/i).filter((w) => w.length > 2).map((w) => w.slice(0, Math.max(3, w.length - 2)));
+    const ws = queryStems(words);
     const all = searchProducts(db, {});
     const scored = all.map((v) => {
       const t = `${v.brandName} ${v.name} ${v.shortDescription} ${v.family ?? ""}`.toLowerCase().replace(/ё/g, "е");

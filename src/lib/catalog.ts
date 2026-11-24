@@ -112,6 +112,19 @@ export type Filters = {
   sort?: "popular" | "price-asc" | "price-desc" | "new" | "rating" | "discount";
 };
 
+// служебные слова живой речи, которые не помогают искать товар
+const STOP = new Set("есть ли у вас вас нас мне нужен нужна нужно нужны хочу хочется купить покажи покажите найди найдите сколько стоит стоят цена цену какой какая какие какое для под подскажите пожалуйста можно это там такой такая еще ещё или как где что чтобы".split(" "));
+
+/** Слова запроса без служебных, укороченные до основы («шампуни» → «шамп…») */
+export function queryStems(q: string) {
+  return q
+    .toLowerCase()
+    .replace(/ё/g, "е")
+    .split(/[^a-zа-я0-9]+/i)
+    .filter((w) => w.length > 2 && !STOP.has(w))
+    .map((w) => (w.length > 5 ? w.slice(0, w.length - 2) : w));
+}
+
 export function searchProducts(db: Database, f: Filters): ProductView[] {
   const q = f.q?.trim().toLowerCase();
   let list = db.products.filter((p) => p.isActive);
@@ -124,11 +137,25 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
   if (f.hit) list = list.filter((p) => p.isHit);
   if (f.isNew) list = list.filter((p) => p.isNew);
   if (q) {
-    list = list.filter((p) => {
+    const text = (p: Product) => {
       const brand = db.brands.find((b) => b.id === p.brandId)?.name ?? "";
       const notes = p.notes ? [...p.notes.top, ...p.notes.heart, ...p.notes.base].join(" ") : "";
-      return [p.name, brand, p.shortDescription, p.family ?? "", notes, p.tags.join(" ")].join(" ").toLowerCase().includes(q);
-    });
+      const cat = db.categories.find((c) => c.id === (p.subcategoryId ?? p.categoryId))?.name ?? "";
+      return [p.name, brand, cat, p.shortDescription, p.family ?? "", notes, p.tags.join(" ")].join(" ").toLowerCase().replace(/ё/g, "е");
+    };
+    const exact = list.filter((p) => text(p).includes(q.replace(/ё/g, "е")));
+    if (exact.length) list = exact;
+    else {
+      // фраза целиком не нашлась (часто так бывает при голосовом поиске:
+      // «есть ли у вас шампунь Olaplex, сколько стоит») — ищем по отдельным словам
+      const stems = queryStems(q);
+      const scored = list.map((p) => {
+        const t = text(p);
+        return { p, s: stems.filter((w) => t.includes(w)).length };
+      });
+      const best = Math.max(0, ...scored.map((x) => x.s));
+      list = best > 0 ? scored.filter((x) => x.s === best).map((x) => x.p) : [];
+    }
   }
   let views = list.map((p) => toView(db, p));
   if (f.sale) views = views.filter((v) => v.discountPercent > 0);

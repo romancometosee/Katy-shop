@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "./CartProvider";
+import MicButton from "./MicButton";
 import { rub } from "@/lib/format";
 import type { ProductView } from "@/lib/catalog";
 
@@ -278,9 +279,10 @@ export default function AskKaty() {
             }}
             rows={1}
             maxLength={1000}
-            placeholder="Спросите о чём угодно…"
+            placeholder="Напишите или скажите голосом…"
             className="max-h-28 min-h-[44px] flex-1 resize-none rounded-2xl bg-sand px-4 py-2.5 text-[15px] outline-none"
           />
+          <MicButton size="h-11 w-11" onText={setInput} onFinal={(t) => send(t)} />
           <button disabled={busy || !input.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-white transition disabled:opacity-30" aria-label="Отправить">
             ↑
           </button>

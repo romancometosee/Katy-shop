@@ -6,6 +6,7 @@ import { useCart } from "./CartProvider";
 import ProductArt from "./ProductArt";
 import PhotoFan from "./PhotoFan";
 import SearchSuggest from "./SearchSuggest";
+import MicButton from "./MicButton";
 import { categoryImages } from "@/lib/productImages";
 import { BagIcon, ChevronDown, ChevronRight, CloseIcon, HeartIcon, MenuIcon, SearchIcon } from "./Icons";
 import type { ProductArt as Art } from "@/lib/types";
@@ -68,8 +69,11 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === "Escape" && setSuggest(false)}
                 placeholder="Товар, бренд или нота — например, «гель-лак»"
-                className="w-full rounded-full border border-line bg-white py-2.5 pl-11 pr-4 text-sm outline-none focus:border-ink/40"
+                className="w-full rounded-full border border-line bg-white py-2.5 pl-11 pr-12 text-sm outline-none focus:border-ink/40"
               />
+              <span className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                <MicButton size="h-8 w-8" onText={(t) => { setQ(t); setSuggest(true); }} onFinal={(t) => { setSuggest(false); router.push(`/search?q=${encodeURIComponent(t)}`); }} />
+              </span>
             </label>
             <SearchSuggest q={q} open={suggest} onClose={() => setSuggest(false)} />
           </form>
