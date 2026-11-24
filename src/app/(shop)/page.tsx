@@ -1,6 +1,7 @@
 import Link from "next/link";
 import HeroSlider from "@/components/HeroSlider";
 import TitleScreen from "@/components/TitleScreen";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import Section from "@/components/Section";
 import ProductRail from "@/components/ProductRail";
 import ProductArt from "@/components/ProductArt";
@@ -88,6 +89,8 @@ export default async function HomePage() {
           <HeroSlider banners={banners} />
         </div>
       )}
+
+      <RecentlyViewed />
 
       <Section title="Хиты продаж" kicker="Выбор покупателей" href="/search?hit=1">
         <ProductRail products={hits} />

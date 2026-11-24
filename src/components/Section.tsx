@@ -3,7 +3,7 @@ import { ChevronRight } from "./Icons";
 
 export default function Section({ title, kicker, href, linkText = "Смотреть все", children, className = "" }: { title: string; kicker?: string; href?: string; linkText?: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`container-x mt-20 ${className}`}>
+    <section className={`reveal container-x mt-20 ${className}`}>
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           {kicker && <p className="mb-2 text-xs font-semibold uppercase tracking-[.25em] text-gold">{kicker}</p>}

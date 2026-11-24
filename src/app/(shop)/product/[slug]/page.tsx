@@ -7,6 +7,7 @@ import ProductImage from "@/components/ProductImage";
 import ProductRail from "@/components/ProductRail";
 import Section from "@/components/Section";
 import { StarIcon } from "@/components/Icons";
+import RecentlyViewed, { TrackView } from "@/components/RecentlyViewed";
 import { getDb } from "@/lib/db";
 import { genderLabel, searchProducts, toView } from "@/lib/catalog";
 import { submitReview } from "@/lib/actions";
@@ -106,6 +107,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <ProductRail products={sameBrand} />
         </Section>
       )}
+      <TrackView item={{ slug: p.slug, name: p.name, brand: p.brandName, image: p.images[0], price: p.price }} />
+      <RecentlyViewed exclude={p.slug} bare />
     </div>
   );
 }
