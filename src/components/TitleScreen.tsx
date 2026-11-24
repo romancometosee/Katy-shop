@@ -15,8 +15,9 @@ const tiles: Tile[] = [
   { slug: "nogti", name: "Ногти", note: "гель-лаки и уход", bg: "#f9e3e4", className: "row-span-2" },
   { slug: "volosy", name: "Волосы", note: "шампуни, бальзамы, масла", bg: "#f3ecdc", className: "" },
   { slug: "uhod-za-licom", name: "Уход", note: "сыворотки и кремы", bg: "#e6efe4", className: "" },
-  { slug: "makiyazh", name: "Макияж", note: "помады, тушь, палетки", bg: "#f4e4ea", className: "col-span-2" },
-  { slug: "telo", name: "Тело", note: "кремы и дымки", bg: "#f7eedf", className: "" },
+  { slug: "makiyazh", name: "Макияж", note: "помады, тушь, палетки", bg: "#f4e4ea", className: "" },
+  { slug: "telo", name: "Тело", note: "кремы, скрабы и дымки", bg: "#f7eedf", className: "col-span-2" },
+  { slug: "nabory", name: "Подарки", note: "готовые наборы", bg: "#ece6f4", className: "" },
 ];
 
 export default function TitleScreen({ categories, brands }: { categories: Category[]; brands: { name: string; slug: string }[] }) {
@@ -53,7 +54,7 @@ export default function TitleScreen({ categories, brands }: { categories: Catego
         </div>
 
         {/* мозаика разделов */}
-        <div className="grid auto-rows-[118px] grid-cols-3 gap-3 sm:auto-rows-[150px] sm:gap-4">
+        <div className="grid grid-flow-row-dense auto-rows-[120px] grid-cols-3 gap-3 sm:auto-rows-[140px] sm:gap-4">
           {shown.map((t, i) => (
             <Link
               key={t.slug}
@@ -66,7 +67,7 @@ export default function TitleScreen({ categories, brands }: { categories: Catego
                 <p className="mt-1 hidden text-xs text-ink-soft sm:block">{t.note}</p>
               </div>
               {categoryImages[t.slug]?.length ? (
-                <PhotoFan images={categoryImages[t.slug]} className="absolute inset-x-3 bottom-3 top-[38%]" />
+                <div className="absolute inset-x-3 bottom-3 top-[40%]"><PhotoFan images={categoryImages[t.slug]} className="h-full w-full" /></div>
               ) : null}
             </Link>
           ))}
