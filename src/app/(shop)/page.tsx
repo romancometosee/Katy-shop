@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HeroSlider from "@/components/HeroSlider";
+import TitleScreen from "@/components/TitleScreen";
 import Section from "@/components/Section";
 import ProductRail from "@/components/ProductRail";
 import ProductArt from "@/components/ProductArt";
@@ -32,20 +33,20 @@ export default async function HomePage() {
   const news = searchProducts(db, { sort: "new" }).slice(0, 4);
   const sale = searchProducts(db, { sale: true, sort: "discount" }).slice(0, 4);
   const niche = searchProducts(db, { subcategory: "parfyumeriya--nishevaya" }).slice(0, 4);
+  const nails = searchProducts(db, { category: "nogti" }).slice(0, 8);
+  const hair = searchProducts(db, { category: "volosy" }).slice(0, 8);
   const promos = db.promotions.filter((p) => isPromotionLive(p));
   const popularBrands = db.brands.filter((b) => b.isPopular).slice(0, 12);
   const s = db.settings;
 
   return (
     <>
-      <div className="container-x pt-6">
-        <HeroSlider banners={banners} />
-      </div>
+      <TitleScreen categories={cats} brands={db.brands.filter((b) => b.isPopular).map((b) => ({ name: b.name, slug: b.slug }))} />
 
       {/* преимущества */}
       <div className="container-x mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { icon: ShieldIcon, t: "100% оригинал", d: "Гарантия подлинности каждого флакона" },
+          { icon: ShieldIcon, t: "100% оригинал", d: "Гарантия подлинности каждого средства" },
           { icon: GiftIcon, t: "Подарок в заказе", d: s.giftText },
           { icon: TruckIcon, t: "Доставка по России", d: `Бесплатно от ${rub(s.freeDeliveryFrom)}` },
           { icon: SparkIcon, t: "Подбор аромата", d: "Подскажем, что подойдёт именно вам" },
@@ -62,7 +63,7 @@ export default async function HomePage() {
 
       {/* разделы */}
       <Section title="Каталог" kicker="Разделы магазина">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
           {cats.map((c) => (
             <Link key={c.id} href={`/catalog/${c.slug}`} className="group relative flex aspect-[3/4] flex-col overflow-hidden rounded-3xl" style={{ background: c.art.bg }}>
               {categoryImages[c.slug]?.length ? (
@@ -81,7 +82,14 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <Section title="Хиты продаж" kicker="Выбор покупателей" href="/catalog/parfyumeriya?hit=1">
+      {/* баннеры акций и подборок — уже не на первом экране */}
+      {banners.length > 0 && (
+        <div className="container-x mt-20">
+          <HeroSlider banners={banners} />
+        </div>
+      )}
+
+      <Section title="Хиты продаж" kicker="Выбор покупателей" href="/search?hit=1">
         <ProductRail products={hits} />
       </Section>
 
@@ -108,7 +116,7 @@ export default async function HomePage() {
         </Section>
       )}
 
-      <Section title="Новинки" kicker="Только что в магазине" href="/catalog/parfyumeriya?sort=new">
+      <Section title="Новинки" kicker="Только что в магазине" href="/search?sort=new">
         <ProductRail products={news} />
       </Section>
 
@@ -141,6 +149,18 @@ export default async function HomePage() {
       {sale.length > 0 && (
         <Section title="Выгодно сейчас" kicker="Скидки" href="/sale">
           <ProductRail products={sale} />
+        </Section>
+      )}
+
+      {nails.length > 0 && (
+        <Section title="Ногти" kicker="Гель-лаки, базы и уход" href="/catalog/nogti">
+          <ProductRail products={nails} />
+        </Section>
+      )}
+
+      {hair.length > 0 && (
+        <Section title="Уход за волосами" kicker="Шампуни, бальзамы, маски и масла" href="/catalog/volosy">
+          <ProductRail products={hair} />
         </Section>
       )}
 

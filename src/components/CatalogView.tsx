@@ -4,6 +4,9 @@ import Breadcrumbs from "./Breadcrumbs";
 import FilterPanel, { type FacetOption } from "./FilterPanel";
 import SortSelect from "./SortSelect";
 import ProductCard from "./ProductCard";
+import Pager from "./Pager";
+
+const PER_PAGE = 48;
 import { genderLabel, searchProducts, type Filters } from "@/lib/catalog";
 import type { Database } from "@/lib/types";
 import { plural } from "@/lib/format";
@@ -51,6 +54,9 @@ export default function CatalogView({
 }) {
   const f = { ...filtersFromParams(sp), ...Object.fromEntries(Object.entries(base).filter(([, v]) => v !== undefined)) } as Filters;
   const products = searchProducts(db, f);
+  const pages = Math.max(1, Math.ceil(products.length / PER_PAGE));
+  const page = Math.min(pages, Math.max(1, parseInt(one(sp.page) ?? "1") || 1));
+  const shown = products.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const all = searchProducts(db, { ...base, q: base.q ?? f.q });
 
   const count = (key: (p: (typeof all)[number]) => string | undefined) => {
@@ -101,9 +107,12 @@ export default function CatalogView({
               <p className="mt-2 text-ink-soft">Попробуйте изменить фильтры или поискать по-другому.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
-              {products.map((p) => <ProductCard key={p.id} p={p} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
+                {shown.map((p) => <ProductCard key={p.id} p={p} />)}
+              </div>
+              <Pager page={page} pages={pages} params={sp} />
+            </>
           )}
         </div>
       </div>

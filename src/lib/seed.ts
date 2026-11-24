@@ -62,7 +62,13 @@ export const seedCategories: Category[] = [
   sub("telo", "skraby", "Скрабы", 3),
   sub("telo", "dymki", "Дымки для тела", 4),
 
-  top("nabory", "Подарочные наборы", "Готовые подарки: наборы, адвент-календари, дуэты.", 6, art("compact", "#d6c7e6", "#4b3a63", "#f1ecf7")),
+  top("nogti", "Ногти", "Гель-лаки, лаки, базы и топы, уход за ногтями и кутикулой.", 6, art("flacon-round", "#c8433d", "#1c1917", "#fbeceb")),
+  sub("nogti", "gel-laki", "Гель-лаки", 1),
+  sub("nogti", "laki", "Лаки для ногтей", 2),
+  sub("nogti", "baza-i-top", "База и топ", 3),
+  sub("nogti", "uhod-za-nogtyami", "Уход за ногтями и кутикулой", 4),
+
+  top("nabory", "Подарочные наборы", "Готовые подарки: наборы, адвент-календари, дуэты.", 7, art("compact", "#d6c7e6", "#4b3a63", "#f1ecf7")),
   sub("nabory", "zhenskie-nabory", "Для неё", 1),
   sub("nabory", "muzhskie-nabory", "Для него", 2),
   sub("nabory", "advent", "Адвент-календари", 3),
@@ -109,6 +115,8 @@ export const seedBrands: Brand[] = [
   b("Benefit", "США", false, "Яркий макияж: тушь, брови, хайлайтеры."),
   b("Kérastase", "Франция", true, "Профессиональный уход за волосами класса люкс."),
   b("Olaplex", "США", false, "Восстановление волос на уровне связей."),
+  b("OPI", "США", true, "Легендарные лаки и гель-лаки для ногтей, любимые мастерами по всему миру."),
+  b("CND", "США", false, "Создатели Shellac — первого гель-лака, который снимается без опила."),
   b("Moroccanoil", "Израиль", false, "Уход на основе арганового масла."),
   b("Rituals", "Нидерланды", false, "Ритуалы ухода за телом и ароматы для дома."),
   b("Sol de Janeiro", "Бразилия", true, "Солнечные бразильские средства для тела."),
@@ -294,6 +302,26 @@ export const seedProducts: Product[] = [
   product({ name: "Пена для душа The Ritual of Sakura", brand: "Rituals", sub: "telo--dush", price: 1290, label: "200 мл", shape: "tube", color: "#f2c5cf", accent: "#f5f0ea", bg: "#fbf0f2", short: "Нежная пена с ароматом сакуры." }),
   product({ name: "Скраб для тела Rituals of Ayurveda", brand: "Rituals", sub: "telo--skraby", price: 1990, label: "300 г", shape: "jar", color: "#e5874a", accent: "#7a3b1d", bg: "#fbeee4", short: "Сахарный скраб с индийской розой и миндалём." }),
   product({ name: "Масло для тела Huile Tonic", brand: "Clarins", sub: "telo--kremy-dlya-tela", price: 5600, label: "100 мл", shape: "dropper", color: "#c9a46a", accent: "#b4232b", bg: "#f8f0e2", short: "Тонизирующее масло для упругости кожи." }),
+
+  // ---- Ногти
+  product({ name: "Гель-лак GelColor Big Apple Red", brand: "OPI", sub: "nogti--gel-laki", price: 1490, label: "15 мл", shape: "flacon-round", color: "#c8102e", accent: "#1c1917", bg: "#fbeceb", short: "Классический красный гель-лак: стойкость до 3 недель под лампой.", hit: true }),
+  product({ name: "Гель-лак GelColor Funny Bunny", brand: "OPI", sub: "nogti--gel-laki", price: 1490, label: "15 мл", shape: "flacon-round", color: "#f4f1ea", accent: "#1c1917", bg: "#f7f5f0", short: "Молочно-белый оттенок для нежного маникюра и френча.", isNew: true, age: 4 }),
+  product({ name: "Гель-лак GelColor Malaga Wine", brand: "OPI", sub: "nogti--gel-laki", price: 1490, label: "15 мл", shape: "flacon-round", color: "#7b1e2f", accent: "#1c1917", bg: "#f6e8ea", short: "Глубокий винный оттенок — хит осени и зимы." }),
+  product({ name: "Гель-лак GelColor Bubble Bath", brand: "OPI", sub: "nogti--gel-laki", price: 1490, label: "15 мл", shape: "flacon-round", color: "#f2d4d0", accent: "#1c1917", bg: "#fbf0ee", short: "Самый популярный нюдовый розовый у мастеров маникюра.", hit: true }),
+  product({ name: "Гель-лак Shellac Berry Boudoir", brand: "CND", sub: "nogti--gel-laki", price: 1790, label: "7,3 мл", shape: "flacon-round", color: "#6d1a36", accent: "#1c1917", bg: "#f5e7ec", short: "Ягодный оттенок Shellac: снимается без опила за 10 минут." }),
+  product({ name: "База Shellac Base Coat", brand: "CND", sub: "nogti--baza-i-top", price: 1890, label: "7,3 мл", shape: "flacon-round", color: "#f0ece4", accent: "#1c1917", bg: "#f7f5f0", short: "Базовое покрытие системы Shellac — надёжное сцепление и бережное снятие." }),
+  product({ name: "Топ Shellac Original Top Coat", brand: "CND", sub: "nogti--baza-i-top", price: 1890, label: "12,5 мл", shape: "flacon-round", color: "#f0ece4", accent: "#1c1917", bg: "#f7f5f0", short: "Финишное покрытие с зеркальным блеском." }),
+  product({ name: "Лак для ногтей Big Apple Red", brand: "OPI", sub: "nogti--laki", price: 990, label: "15 мл", shape: "flacon-round", color: "#c8102e", accent: "#1c1917", bg: "#fbeceb", short: "Культовый красный лак OPI Nail Lacquer." }),
+  product({ name: "Лак для ногтей Bubble Bath", brand: "OPI", sub: "nogti--laki", price: 990, label: "15 мл", shape: "flacon-round", color: "#f2d4d0", accent: "#1c1917", bg: "#fbf0ee", short: "Прозрачно-розовый оттенок для ухоженных ногтей.", hit: true }),
+  product({ name: "Средство для укрепления ногтей Nail Envy Bubble Bath", brand: "OPI", sub: "nogti--uhod-za-nogtyami", price: 2190, label: "15 мл", shape: "flacon-round", color: "#f2d4d0", accent: "#1c1917", bg: "#fbf0ee", short: "Укрепляет тонкие и ломкие ногти, придаёт лёгкий розовый оттенок." }),
+  product({ name: "Масло для кутикулы SolarOil", brand: "CND", sub: "nogti--uhod-za-nogtyami", price: 990, label: "7,3 мл", shape: "dropper", color: "#e9c46a", accent: "#1c1917", bg: "#fbf4e2", short: "Масло жожоба и витамин Е: мягкая кутикула и крепкие ногти.", hit: true }),
+
+  // ---- Волосы: шампуни, бальзамы, маски
+  product({ name: "Кондиционер No.5 Bond Maintenance", brand: "Olaplex", sub: "volosy--maski-i-kondicionery", price: 3490, label: "250 мл", shape: "pump", color: "#f4f1ea", accent: "#1c1917", bg: "#f7f5f0", short: "Восстанавливающий бальзам-кондиционер для повреждённых волос.", hit: true }),
+  product({ name: "Масло для волос No.7 Bonding Oil", brand: "Olaplex", sub: "volosy--masla", price: 3290, label: "30 мл", shape: "dropper", color: "#f4f1ea", accent: "#1c1917", bg: "#f7f5f0", short: "Лёгкое масло для блеска и защиты от горячей укладки." }),
+  product({ name: "Увлажняющий шампунь Hydrating Shampoo", brand: "Moroccanoil", sub: "volosy--shampuni", price: 2790, label: "250 мл", shape: "pump", color: "#7fb3d5", accent: "#e07b39", bg: "#eef5fa", short: "Мягкий шампунь с аргановым маслом для сухих волос." }),
+  product({ name: "Увлажняющий кондиционер Hydrating Conditioner", brand: "Moroccanoil", sub: "volosy--maski-i-kondicionery", price: 2990, label: "250 мл", shape: "pump", color: "#7fb3d5", accent: "#e07b39", bg: "#eef5fa", short: "Бальзам для мягкости и блеска, легко расчёсывает волосы.", isNew: true, age: 3 }),
+  product({ name: "Интенсивная увлажняющая маска Intense Hydrating Mask", brand: "Moroccanoil", sub: "volosy--maski-i-kondicionery", price: 4290, label: "250 мл", shape: "jar", color: "#7fb3d5", accent: "#e07b39", bg: "#eef5fa", short: "Глубокое питание для сухих и плотных волос за 5 минут." }),
 
   // ---- Наборы
   product({ name: "Набор Coco Mademoiselle: аромат + крем для тела", brand: "Chanel", sub: "nabory--zhenskie-nabory", price: 18900, oldPrice: 21500, label: "Набор", shape: "compact", color: "#f2c9a8", accent: "#1c1917", bg: "#f8ece2", short: "Подарочный набор с ароматом 50 мл и кремом для тела.", hit: true }),

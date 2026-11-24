@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { Notice, PageHead } from "@/components/admin/ui";
 import ProductImage from "@/components/ProductImage";
+import Pager from "@/components/Pager";
+
+const PER_PAGE = 50;
 import { getDb } from "@/lib/db";
 import { bestPromotion, topCategories } from "@/lib/catalog";
 import { bulkPrice, quickPrice, toggleProductFlag } from "@/lib/admin-actions";
 
-type SP = { q?: string; cat?: string; brand?: string; saved?: string; bulk?: string };
+type SP = { q?: string; cat?: string; brand?: string; saved?: string; bulk?: string; page?: string };
 
 export default async function ProductsAdmin({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
@@ -20,6 +23,9 @@ export default async function ProductsAdmin({ searchParams }: { searchParams: Pr
     }
     return true;
   });
+  const pages = Math.max(1, Math.ceil(products.length / PER_PAGE));
+  const page = Math.min(pages, Math.max(1, parseInt(sp.page ?? "1") || 1));
+  const shown = products.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const cats = topCategories(db);
   const brands = [...db.brands].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -70,9 +76,9 @@ export default async function ProductsAdmin({ searchParams }: { searchParams: Pr
         </form>
       </div>
 
-      <p className="mb-3 text-sm text-ink-soft">Найдено: {products.length}</p>
+      <p className="mb-3 text-sm text-ink-soft">Найдено: {products.length}{pages > 1 ? ` · страница ${page} из ${pages}` : ""}</p>
       <div className="space-y-3">
-        {products.map((p) => {
+        {shown.map((p) => {
           const brand = db.brands.find((b) => b.id === p.brandId);
           const promo = bestPromotion(db, p);
           return (
@@ -107,6 +113,7 @@ export default async function ProductsAdmin({ searchParams }: { searchParams: Pr
           );
         })}
       </div>
+      <Pager page={page} pages={pages} params={{ q: sp.q, cat: sp.cat, brand: sp.brand }} />
       <p className="mt-4 text-xs text-ink-soft">В каждой ячейке: слева цена в рублях, справа — остаток в штуках.</p>
     </div>
   );

@@ -57,6 +57,22 @@ export const productImages: Record<string, string> = {
   "sol-de-janeiro-krem-dlya-tela-brazilian-bum-bum": "https://cdn.shopify.com/s/files/1/2826/2250/files/01_SDJ_PPage_DTC_BB_BC_240ML_OVERHEAD_RGB_1452X1452_cb5b3d96-578a-4163-8c34-8c815fc465eb.jpg?width=800",
   "moroccanoil-maslo-moroccanoil-treatment": "https://cdn.shopify.com/s/files/1/0735/2582/1755/files/153_TREATMENT_ORIGINAL_100mL_v2_237139c5-fb67-4169-89c4-6a6adfbb7b0b.jpg?width=800",
   "moroccanoil-sprey-dlya-obema-volumizing-mist": "https://cdn.shopify.com/s/files/1/0735/2582/1755/files/108_STYLE-FINISHER_VOLUMIZING-MIST_160mL_v2_de10bb61-2928-4107-842f-2a176f1525bf.jpg?width=800",
+  "opi-gel-lak-gelcolor-big-apple-red": "https://cdn.shopify.com/s/files/1/0649/4879/7673/files/gc24_ecommerce_2024_jpg_big_apple_red_gcn25_gel_nail_polish_99399000588_2000x2477_df0f7d54-d571-4cba-9ae3-d38ed9fd32a7.jpg?width=800",
+  "opi-gel-lak-gelcolor-funny-bunny": "https://cdn.shopify.com/s/files/1/0649/4879/7673/files/gc24_ecommerce_2024_jpg_funny_bunny_gch22_gel_nail_polish_99399000647_2000x2477_208e6e6e-a459-4c34-be3f-bd45c48b2073.jpg?width=800",
+  "opi-gel-lak-gelcolor-malaga-wine": "https://cdn.shopify.com/s/files/1/0649/4879/7673/files/gc24_ecommerce_2024_jpg_malaga_wine_gcl87_gel_nail_polish_99399000661_2000x2477_61ca4b60-322a-406d-8451-9a9f23fa7d1a.jpg?width=800",
+  "opi-gel-lak-gelcolor-bubble-bath": "https://cdn.shopify.com/s/files/1/0649/4879/7673/files/gc24_ecommerce_2024_jpg_bubble_bath_gcs86_gel_nail_polish_99399000611_2000x2477_c57bae26-991f-48b5-a063-aa600a704ba9.jpg?width=800",
+  "cnd-gel-lak-shellac-berry-boudoir": "https://cdn.shopify.com/s/files/1/0794/0010/8323/files/CND-SHELLAC-PDP-MTL-BERRY-BOUDOIR-DM-3000x3000.jpg?width=800",
+  "cnd-baza-shellac-base-coat": "https://cdn.shopify.com/s/files/1/0794/0010/8323/files/CND-Shellac-Base-Coat-Hero-3000x3000.jpg?width=800",
+  "cnd-top-shellac-original-top-coat": "https://cdn.shopify.com/s/files/1/0794/0010/8323/files/2025_CND_ECOMM_SHELLAC_TOP_COAT_ORIGINAL_042OZ_3000X3000_RGB.jpg?width=800",
+  "opi-lak-dlya-nogtey-big-apple-red": "https://cdn.shopify.com/s/files/1/0649/4879/7673/products/big-apple-red-nln25-nail-lacquer-22001014069_5d248308-fefd-4aef-a1c2-abaedcd41a56.jpg?width=800",
+  "opi-lak-dlya-nogtey-bubble-bath": "https://cdn.shopify.com/s/files/1/0649/4879/7673/products/bubble-bath-nls86-nail-lacquer-22001014085_fcdd1b92-e288-4052-843e-c77cd3b88188.jpg?width=800",
+  "opi-sredstvo-dlya-ukrepleniya-nogtey-nail-envy-bubble-bath": "https://cdn.shopify.com/s/files/1/0649/4879/7673/products/nail-envy-bubble-bath-nt222-treatments-strengtheners-99399000048-2000x2477.jpg?width=800",
+  "cnd-maslo-dlya-kutikuly-solaroil": "https://cdn.shopify.com/s/files/1/0794/0010/8323/files/CND_SolarOil_2.3ml_0.25oz_with_Carton.webp?width=800",
+  "olaplex-kondicioner-no-5-bond-maintenance": "https://cdn.shopify.com/s/files/1/0434/1661/files/2026_No5_250ML_ProductPackshot_01_GBL_1440x1440_1.png?width=800",
+  "olaplex-maslo-dlya-volos-no-7-bonding-oil": "https://cdn.shopify.com/s/files/1/0434/1661/files/2026__7_30ML_ProductPackshot_01_GBL_1440x1440_1.png?width=800",
+  "moroccanoil-uvlazhnyayushchiy-shampun-hydrating-shampoo": "https://cdn.shopify.com/s/files/1/0735/2582/1755/files/ID-0310-Hydration-Shampoo-250ml-No-Claim-1080x1376.jpg?width=800",
+  "moroccanoil-uvlazhnyayushchiy-kondicioner-hydrating-conditioner": "https://cdn.shopify.com/s/files/1/0735/2582/1755/files/ID-0310-Hydration-Conditioner-250ml-No-Claim-1080x1376.jpg?width=800",
+  "moroccanoil-intensivnaya-uvlazhnyayushchaya-maska-intense-hydrating-mask": "https://cdn.shopify.com/s/files/1/0735/2582/1755/products/121_MASK_INTENSE-HYDRATING_250mL_v3.jpg?width=800",
 };
 
 const pick = (...ids: string[]) => ids.map((id) => productImages[id]).filter(Boolean);
@@ -66,7 +82,8 @@ export const categoryImages: Record<string, string[]> = {
   parfyumeriya: pick("chanel-coco-mademoiselle-eau-de-parfum", "maison-francis-kurkdjian-baccarat-rouge-540-eau-de-parfum", "dior-sauvage-eau-de-parfum"),
   "uhod-za-licom": pick("la-roche-posay-hyalu-b5-syvorotka", "estee-lauder-advanced-night-repair", "caudalie-beauty-elixir"),
   makiyazh: pick("yves-saint-laurent-rouge-pur-couture", "charlotte-tilbury-paletka-teney-pillow-talk", "benefit-tush-they-re-real"),
-  volosy: pick("olaplex-no-3-hair-perfector", "kerastase-elixir-ultime-l-huile-originale", "kerastase-elixir-ultime-shampun"),
+  volosy: pick("moroccanoil-uvlazhnyayushchiy-kondicioner-hydrating-conditioner", "kerastase-elixir-ultime-l-huile-originale", "olaplex-kondicioner-no-5-bond-maintenance"),
+  nogti: pick("opi-gel-lak-gelcolor-big-apple-red", "cnd-maslo-dlya-kutikuly-solaroil", "opi-gel-lak-gelcolor-bubble-bath"),
   telo: pick("sol-de-janeiro-dymka-dlya-tela-cheirosa-62", "sol-de-janeiro-krem-dlya-tela-brazilian-bum-bum"),
   nabory: pick("dior-nabor-sauvage-parfyum-gel-dlya-dusha", "chanel-nabor-coco-mademoiselle-aromat-krem-dlya-tela", "maison-francis-kurkdjian-nabor-miniatyur-bestsellery-nishi-5-2-ml"),
 };

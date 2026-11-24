@@ -17,10 +17,35 @@ let cache: Database | null = null;
 let loading: Promise<Database> | null = null;
 let queue: Promise<unknown> = Promise.resolve();
 
+export const SEED_VERSION = 2;
+
+/** Добавляет в сохранённые данные новые разделы, бренды и товары из обновлений сайта (ничего не удаляет и не меняет) */
+function upgrade(db: Database): boolean {
+  if ((db.seedVersion ?? 1) >= SEED_VERSION) return false;
+  const seed = createSeed();
+  const add = <T extends { id: string }>(have: T[], from: T[]) => {
+    const ids = new Set(have.map((x) => x.id));
+    from.forEach((x) => { if (!ids.has(x.id)) have.push(x); });
+  };
+  add(db.categories, seed.categories);
+  add(db.brands, seed.brands);
+  add(db.products, seed.products);
+  // порядок разделов в меню — как в новой версии (новый раздел «Ногти» встаёт перед «Подарочными наборами»)
+  for (const c of db.categories) {
+    const s = seed.categories.find((x) => x.id === c.id);
+    if (s && !c.parentId) c.order = s.order;
+  }
+  db.seedVersion = SEED_VERSION;
+  return true;
+}
+
 async function load(): Promise<Database> {
   const db = await readDb();
-  if (db) return withImages(db);
-  const seed = withImages(createSeed());
+  if (db) {
+    if (upgrade(db)) await writeDb(db);
+    return withImages(db);
+  }
+  const seed = withImages({ ...createSeed(), seedVersion: SEED_VERSION });
   await writeDb(seed);
   return seed;
 }
@@ -46,7 +71,7 @@ export async function updateDb<T>(fn: (db: Database) => T | Promise<T>): Promise
 }
 
 export async function resetDb() {
-  const seed = withImages(createSeed());
+  const seed = withImages({ ...createSeed(), seedVersion: SEED_VERSION });
   if (!isKv()) cache = seed;
   await writeDb(seed);
 }

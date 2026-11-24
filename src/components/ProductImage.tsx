@@ -1,4 +1,3 @@
-import ProductArt from "./ProductArt";
 import type { ProductArt as Art } from "@/lib/types";
 
 export default function ProductImage({
@@ -21,9 +20,13 @@ export default function ProductImage({
       </div>
     );
   }
+  // Фото пока нет — вместо нарисованного флакона показываем аккуратную карточку с названием бренда
   return (
-    <div className="h-full w-full" style={{ background: art.bg }}>
-      <ProductArt {...art} label={label} className={`h-full w-full ${className}`} />
+    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden p-4 text-center" style={{ background: `linear-gradient(160deg, #ffffff 0%, ${art.bg} 100%)` }}>
+      <span className="absolute inset-x-[18%] top-[16%] h-px bg-ink/10" />
+      <span className={`h-display text-[clamp(14px,2.2vw,26px)] uppercase leading-tight tracking-[.18em] text-ink/80 ${className}`}>{label || "Katy"}</span>
+      <span className="mt-2 text-[10px] font-semibold uppercase tracking-[.3em] text-ink/35">фото скоро</span>
+      <span className="absolute inset-x-[18%] bottom-[16%] h-px bg-ink/10" />
     </div>
   );
 }

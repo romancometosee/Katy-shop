@@ -173,4 +173,6 @@ export type Database = {
   promoCodes: PromoCode[];
   banners: Banner[];
   orders: Order[];
+  /** Версия демо-данных: при обновлении сайта новые разделы и товары добавляются в уже сохранённые данные */
+  seedVersion?: number;
 };
