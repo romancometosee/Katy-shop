@@ -173,3 +173,20 @@ export async function joinClub(input: { name: string; phone: string; birthday?: 
   return res;
 }
 
+
+/** «Сообщить о поступлении»: запоминаем телефон, оповестим, когда товар появится */
+export async function subscribeStock(input: { productId: string; variantId: string; phone: string }) {
+  const phone = normPhone(input.phone ?? "");
+  if (phone.length !== 11) return { ok: false as const, error: "Проверьте номер телефона" };
+  return updateDb((db) => {
+    const p = db.products.find((x) => x.id === input.productId);
+    const v = p?.variants.find((x) => x.id === input.variantId);
+    if (!p || !v) return { ok: false as const, error: "Товар не найден" };
+    db.stockAlerts ??= [];
+    if (!db.stockAlerts.some((a) => a.productId === p.id && a.variantId === v.id && a.phone === phone && !a.notifiedAt)) {
+      if (db.stockAlerts.length > 5000) db.stockAlerts.splice(0, db.stockAlerts.length - 5000);
+      db.stockAlerts.push({ id: crypto.randomUUID(), productId: p.id, variantId: v.id, phone, createdAt: new Date().toISOString() });
+    }
+    return { ok: true as const };
+  });
+}

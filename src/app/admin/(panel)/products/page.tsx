@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Notice, PageHead } from "@/components/admin/ui";
 import ProductImage from "@/components/ProductImage";
 import Pager from "@/components/Pager";
+import MirrorPhotos from "@/components/admin/MirrorPhotos";
+import { isExternal } from "@/lib/mirror";
 
 const PER_PAGE = 50;
 import { getDb } from "@/lib/db";
@@ -42,6 +44,7 @@ export default async function ProductsAdmin({ searchParams }: { searchParams: Pr
       <PageHead title="Товары и цены" desc="Меняйте цены и остатки прямо в таблице и нажимайте «Сохранить». Чтобы изменить фото, описание или ноты — нажмите на название." action={{ href: "/admin/products/new", label: "+ Добавить товар" }} />
       {sp.saved && <Notice>Товар сохранён.</Notice>}
       {sp.bulk && <Notice>Цены обновлены.</Notice>}
+      {(() => { const failed = new Set(db.mirrorFailed ?? []); const ext = new Set(db.products.flatMap((p) => p.images).filter(isExternal)); return <MirrorPhotos external={[...ext].filter((u) => !failed.has(u)).length} failed={[...ext].filter((u) => failed.has(u)).length} />; })()}
 
       <div className="mb-6 grid gap-4 xl:grid-cols-2">
         <form className="card flex flex-wrap gap-2 p-4">

@@ -6,6 +6,9 @@ import { currentCustomer, smsEnabled } from "@/lib/customer";
 import { logout } from "@/lib/account-actions";
 import { DISCOUNT_LEVELS, discountLevel, normPhone, totalSpend } from "@/lib/club";
 import { dateRu, rub } from "@/lib/format";
+import { toView } from "@/lib/catalog";
+import RepeatOrder from "@/components/RepeatOrder";
+import type { CartLine } from "@/components/CartProvider";
 
 export const metadata = { title: "Личный кабинет", robots: { index: false } };
 
@@ -36,6 +39,20 @@ export default async function AccountPage() {
   const maxPercent = DISCOUNT_LEVELS[DISCOUNT_LEVELS.length - 1].percent;
   const storeBuys = (member?.history ?? []).filter((h) => h.kind === "storeSpend");
   const name = member?.name ?? orders[0]?.customer.name ?? "";
+  // для «Повторить заказ»: что из заказа есть сейчас и по какой цене
+  const repeat = (o: (typeof orders)[number]) => {
+    const lines: CartLine[] = [];
+    let missing = 0;
+    for (const i of o.items) {
+      const raw = db.products.find((x) => x.id === i.productId && x.isActive);
+      if (!raw) { if (i.productId !== "gift-card" && i.productId !== "gift-box") missing++; continue; }
+      const p = toView(db, raw);
+      const v = p.variants.find((x) => x.id === i.variantId);
+      if (!v || v.stock <= 0) { missing++; continue; }
+      lines.push({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, qty: Math.min(i.qty, v.stock) });
+    }
+    return { lines, missing };
+  };
 
   return (
     <div className="container-x pt-8">
@@ -126,11 +143,12 @@ export default async function AccountPage() {
                     );
                   })}
                 </ul>
-                <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-soft">
+                <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink-soft">
                   {o.discount > 0 && <span>Скидка: −{rub(o.discount)}</span>}
                   <span>Доставка: {o.deliveryPrice ? rub(o.deliveryPrice) : "бесплатно"}</span>
                   {o.loyaltyPercent ? <span className="text-emerald-700">Накопительная скидка {o.loyaltyPercent}%</span> : null}
                   {o.pointsEarned ? <span className="text-emerald-700">Начислено баллов: +{o.pointsEarned}</span> : null}
+                  {o.status !== "cancelled" && <span className="w-full sm:ml-auto sm:w-auto"><RepeatOrder {...repeat(o)} /></span>}
                 </div>
               </details>
             ))}

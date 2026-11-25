@@ -6,8 +6,12 @@ import { revalidatePath } from "next/cache";
 import { ADMIN_COOKIE, adminPassword, tokenFor } from "./auth";
 import { resetDb, updateDb } from "./db";
 import { saveUploads } from "./uploads";
+import { isExternal, mirrorImage } from "./mirror";
+import { getDb } from "./db";
+import { sendSms } from "./customer";
+import { headers } from "next/headers";
 import { slugify } from "./slug";
-import type { ArtShape, Banner, Gender, OrderStatus, Product, Promotion, PromotionKind, PromotionScope, Settings, Variant } from "./types";
+import type { ArtShape, Banner, Database, Gender, OrderStatus, Product, Promotion, PromotionKind, PromotionScope, Settings, Variant } from "./types";
 
 async function requireAdmin() {
   const token = (await cookies()).get(ADMIN_COOKIE)?.value;
@@ -46,6 +50,28 @@ export async function logout() {
   redirect("/admin/login");
 }
 
+// ---------- «Сообщить о поступлении»: товара не было, а теперь есть — оповещаем ждущих ----------
+type Arrival = { alertId: string; phone: string; text: string };
+function markArrivals(db: Database, product: Product, next: Variant[], name: string, host: string): Arrival[] {
+  const was = new Map(product.variants.map((v) => [v.id, v.stock]));
+  const arrived = next.filter((v) => v.stock > 0 && (was.get(v.id) ?? 0) <= 0).map((v) => v.id);
+  const out: Arrival[] = [];
+  for (const a of db.stockAlerts ?? []) {
+    if (a.productId === product.id && !a.notifiedAt && arrived.includes(a.variantId)) {
+      a.notifiedAt = new Date().toISOString();
+      out.push({ alertId: a.id, phone: a.phone, text: `Katy: «${name}» снова в наличии! ${host ? `https://${host}/product/${product.slug}` : ""}`.trim() });
+    }
+  }
+  return out;
+}
+/** SMS уйдут, когда подключим SMS-сервис; до этого клиенты видны в «Ждут поступления» — им можно позвонить */
+async function sendArrivalSms(list: Arrival[]) {
+  if (!list.length) return;
+  const sent = new Set<string>();
+  for (const b of list) if (await sendSms(b.phone, b.text)) sent.add(b.alertId);
+  if (sent.size) await updateDb((db) => { for (const a of db.stockAlerts ?? []) if (sent.has(a.id)) a.smsSent = true; });
+}
+
 // ---------- Товары ----------
 export async function saveProduct(fd: FormData) {
   await requireAdmin();
@@ -55,7 +81,9 @@ export async function saveProduct(fd: FormData) {
     .map((v) => ({ id: v.id || crypto.randomUUID(), label: v.label, price: Math.round(v.price), oldPrice: v.oldPrice ? Math.round(v.oldPrice) : undefined, stock: Math.max(0, Math.round(v.stock || 0)) }));
   const keptImages = JSON.parse(str(fd, "images") || "[]") as string[];
   const uploaded = await saveUploads(fd.getAll("upload") as File[]);
-  const imageUrl = str(fd, "imageUrl");
+  let imageUrl = str(fd, "imageUrl");
+  // фото по ссылке сразу переносим к себе; если сайт не отдал — оставляем ссылку
+  if (imageUrl && isExternal(imageUrl)) imageUrl = (await mirrorImage(imageUrl)) ?? imageUrl;
   const images = [...keptImages, ...uploaded, ...(imageUrl ? [imageUrl] : [])];
   const subcategoryId = str(fd, "subcategoryId") || undefined;
   const top = str(fd, "notesTop"), heart = str(fd, "notesHeart"), base = str(fd, "notesBase");
@@ -81,9 +109,12 @@ export async function saveProduct(fd: FormData) {
   };
   if (!data.name || !data.brandId || !data.categoryId) throw new Error("Заполните название, бренд и раздел");
 
+  const back: Arrival[] = [];
+  const host = (await headers()).get("host") ?? "";
   await updateDb((db) => {
     const existing = db.products.find((p) => p.id === id);
     if (existing) {
+      back.push(...markArrivals(db, existing, data.variants, data.name, host));
       Object.assign(existing, data);
       const wanted = slugify(str(fd, "slug"));
       if (wanted && wanted !== existing.slug) existing.slug = uniqueSlug(wanted, db.products.map((p) => p.slug));
@@ -93,6 +124,7 @@ export async function saveProduct(fd: FormData) {
       db.products.unshift({ ...data, id: slug, slug, reviews: [], rating: 5, createdAt: new Date().toISOString() });
     }
   });
+  await sendArrivalSms(back);
   done("/admin/products?saved=1");
 }
 
@@ -118,16 +150,20 @@ export async function toggleProductFlag(fd: FormData) {
 export async function quickPrice(fd: FormData) {
   await requireAdmin();
   const productId = str(fd, "productId");
-  await updateDb((db) => {
+  const host = (await headers()).get("host") ?? "";
+  const back = await updateDb((db) => {
     const p = db.products.find((x) => x.id === productId);
-    if (!p) return;
-    for (const v of p.variants) {
+    if (!p) return [];
+    const next = p.variants.map((v) => {
       const price = num(fd, `price-${v.id}`);
       const stock = fd.get(`stock-${v.id}`);
-      if (price > 0) v.price = Math.round(price);
-      if (stock !== null) v.stock = Math.max(0, Math.round(num(fd, `stock-${v.id}`)));
-    }
+      return { ...v, price: price > 0 ? Math.round(price) : v.price, stock: stock !== null ? Math.max(0, Math.round(num(fd, `stock-${v.id}`))) : v.stock };
+    });
+    const msgs = markArrivals(db, p, next, p.name, host);
+    p.variants = next;
+    return msgs;
   });
+  await sendArrivalSms(back);
   done();
 }
 
@@ -425,4 +461,37 @@ export async function resetDemo() {
   await requireAdmin();
   await resetDb();
   done("/admin");
+}
+
+// ---------- Фото товаров: переносим с сайтов брендов к себе ----------
+export async function mirrorPhotosBatch(): Promise<{ moved: number; failed: number; left: number }> {
+  await requireAdmin();
+  const db = await getDb();
+  const failedBefore = new Set(db.mirrorFailed ?? []);
+  const all = [...new Set(db.products.flatMap((p) => p.images).filter((u) => isExternal(u) && !failedBefore.has(u)))];
+  const batch = all.slice(0, 10); // понемногу, чтобы сервер успевал
+  const map = new Map<string, string>();
+  const failed: string[] = [];
+  await Promise.all(batch.map(async (u) => { const m = await mirrorImage(u); if (m) map.set(u, m); else failed.push(u); }));
+  await updateDb((d) => {
+    for (const p of d.products) p.images = p.images.map((u) => map.get(u) ?? u);
+    if (failed.length) d.mirrorFailed = [...new Set([...(d.mirrorFailed ?? []), ...failed])];
+  });
+  revalidatePath("/", "layout");
+  return { moved: map.size, failed: failed.length, left: all.length - batch.length };
+}
+
+/** Снова попробовать фото, которые не удалось перенести */
+export async function retryFailedPhotos() {
+  await requireAdmin();
+  await updateDb((d) => { d.mirrorFailed = []; });
+  done("/admin/products");
+}
+
+// ---------- «Сообщить о поступлении» ----------
+export async function closeStockAlert(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  await updateDb((db) => { db.stockAlerts = (db.stockAlerts ?? []).filter((a) => a.id !== id); });
+  done("/admin/waitlist");
 }

@@ -1,4 +1,5 @@
 "use client";
+import StockAlertForm from "./StockAlertForm";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartProvider";
 import { GiftIcon, HeartIcon, MinusIcon, PlusIcon, ShieldIcon, TruckIcon } from "./Icons";
@@ -77,6 +78,7 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: Produ
           <HeartIcon className={`h-5 w-5 ${fav ? "fill-current" : ""}`} />
         </button>
       </div>
+      {v.stock <= 0 && <StockAlertForm key={v.id} productId={p.id} variantId={v.id} label={p.variants.length > 1 ? `${p.name}, ${v.label}` : p.name} />}
 
       {/* закреплённая кнопка внизу экрана (только телефон и планшет) */}
       {bar && (
@@ -88,8 +90,8 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: Produ
                 {rub(v.price)} {v.oldPrice && <span className="text-sm font-normal text-ink-soft line-through">{rub(v.oldPrice)}</span>}
               </p>
             </div>
-            <button disabled={v.stock <= 0} onClick={addNow} className="btn-dark shrink-0 px-7 py-3.5">
-              {v.stock > 0 ? "В корзину" : "Нет в наличии"}
+            <button onClick={v.stock > 0 ? addNow : () => document.getElementById("stock-alert")?.scrollIntoView({ behavior: "smooth", block: "center" })} className="btn-dark shrink-0 px-7 py-3.5">
+              {v.stock > 0 ? "В корзину" : "Сообщить мне"}
             </button>
           </div>
         </div>

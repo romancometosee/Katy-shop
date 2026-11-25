@@ -8,6 +8,7 @@ const items = [
   ["/admin/orders", "Заказы", "▤"],
   ["/admin/products", "Товары и цены", "◇"],
   ["/admin/club", "Клуб Katy", "✦"],
+  ["/admin/waitlist", "Ждут поступления", "🔔"],
   ["/admin/promotions", "Акции и промокоды", "%"],
   ["/admin/banners", "Баннеры на главной", "▭"],
   ["/admin/categories", "Разделы каталога", "☰"],
@@ -15,7 +16,7 @@ const items = [
   ["/admin/settings", "Настройки", "⚙"],
 ];
 
-export default function AdminNav({ newOrders }: { newOrders: number }) {
+export default function AdminNav({ newOrders, arrived = 0 }: { newOrders: number; arrived?: number }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const active = (h: string) => (h === "/admin" ? path === h : path.startsWith(h));
@@ -27,6 +28,7 @@ export default function AdminNav({ newOrders }: { newOrders: number }) {
             <span className="w-5 text-center">{i}</span>
             <span className="flex-1">{l}</span>
             {h === "/admin/orders" && newOrders > 0 && <span className="rounded-full bg-rose px-2 py-0.5 text-[11px] font-bold text-white">{newOrders}</span>}
+            {h === "/admin/waitlist" && arrived > 0 && <span className="rounded-full bg-rose px-2 py-0.5 text-[11px] font-bold text-white">{arrived}</span>}
           </Link>
         </li>
       ))}

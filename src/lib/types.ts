@@ -207,6 +207,10 @@ export type Database = {
   /** Участники Клуба Katy */
   members?: ClubMember[];
   loginCodes?: LoginCode[];
+  /** «Сообщить о поступлении»: кто ждёт товар */
+  stockAlerts?: StockAlert[];
+  /** адреса фото, которые не удалось перенести к нам (сайт бренда не отдал) */
+  mirrorFailed?: string[];
   /** Версия демо-данных: при обновлении сайта новые разделы и товары добавляются в уже сохранённые данные */
   seedVersion?: number;
 };
@@ -237,3 +241,15 @@ export type PointsEntry = {
 
 /** Одноразовый код для входа в личный кабинет (хранится только хэш) */
 export type LoginCode = { phone: string; hash: string; expires: string; tries: number; sentAt: string[] };
+
+/** Подписка «Сообщить о поступлении» */
+export type StockAlert = {
+  id: string;
+  productId: string;
+  variantId: string;
+  phone: string;
+  createdAt: string;
+  /** когда товар поступил и клиента оповестили (или надо позвонить) */
+  notifiedAt?: string;
+  smsSent?: boolean;
+};
