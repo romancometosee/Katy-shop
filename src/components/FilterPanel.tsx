@@ -1,4 +1,5 @@
 "use client";
+import { useOverlay } from "./useOverlay";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { CloseIcon } from "./Icons";
@@ -20,6 +21,7 @@ export default function FilterPanel({
   const pathname = usePathname();
   const params = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
+  useOverlay(mobileOpen, () => setMobileOpen(false));
   const [min, setMin] = useState(params.get("min") ?? "");
   const [max, setMax] = useState(params.get("max") ?? "");
   const [brandQuery, setBrandQuery] = useState("");

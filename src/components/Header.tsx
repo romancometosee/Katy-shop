@@ -7,6 +7,7 @@ import ProductArt from "./ProductArt";
 import PhotoFan from "./PhotoFan";
 import SearchSuggest from "./SearchSuggest";
 import MicButton from "./MicButton";
+import { useOverlay } from "./useOverlay";
 import { categoryImages } from "@/lib/productImages";
 import { BagIcon, ChevronDown, ChevronRight, CloseIcon, HeartIcon, MenuIcon, SearchIcon } from "./Icons";
 import type { ProductArt as Art } from "@/lib/types";
@@ -36,6 +37,7 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   const [mobile, setMobile] = useState(false);
   const [mobileSub, setMobileSub] = useState<string | null>(null);
+  useOverlay(mobile, () => setMobile(false));
   const [q, setQ] = useState("");
   const [suggest, setSuggest] = useState(false);
   const router = useRouter();

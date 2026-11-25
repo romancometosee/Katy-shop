@@ -1,4 +1,5 @@
 "use client";
+import { useOverlay } from "./useOverlay";
 /* eslint-disable @next/next/no-img-element */
 // «Спросить Katy» — ИИ-консультант. Кнопка в углу открывает окно чата.
 // Открыть окно можно и из любого места сайта: window.dispatchEvent(new CustomEvent("katy-ask", { detail: "вопрос" }))
@@ -180,12 +181,9 @@ export default function AskKaty() {
     return () => window.removeEventListener("katy-ask", h);
   }, [send]);
 
-  useEffect(() => {
-    if (!open) return;
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
-  }, [open]);
+  // Esc закрывает окно; на телефоне окно занимает почти весь экран, поэтому страницу под ним не прокручиваем
+  const phone = typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
+  useOverlay(open, () => setOpen(false), phone);
 
   return (
     <>
@@ -201,6 +199,9 @@ export default function AskKaty() {
         </span>
         <span><span className="hidden sm:inline">Спросить </span>Katy</span>
       </button>
+
+      {/* на телефоне: затемнение над окном чата, нажатие по нему закрывает чат */}
+      {open && <div className="fixed inset-0 z-50 bg-black/30 sm:hidden" onClick={() => setOpen(false)} aria-hidden />}
 
       {/* окно чата */}
       <div
@@ -279,7 +280,7 @@ export default function AskKaty() {
             }}
             rows={1}
             maxLength={1000}
-            placeholder="Напишите или скажите голосом…"
+            placeholder="Спросите что угодно…"
             className="max-h-28 min-h-[44px] flex-1 resize-none rounded-2xl bg-sand px-4 py-2.5 text-[15px] outline-none"
           />
           <MicButton size="h-11 w-11" onText={setInput} onFinal={(t) => send(t)} />

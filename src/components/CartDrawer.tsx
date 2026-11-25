@@ -6,17 +6,19 @@ import { CloseIcon, GiftIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import { rub } from "@/lib/format";
 import PromoHints from "./PromoHints";
 import { useCartQuote } from "./useCartQuote";
+import { useOverlay } from "./useOverlay";
 
 export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliveryFrom: number; giftText: string }) {
   const { lines, subtotal, setQty, remove, drawerOpen, setDrawerOpen } = useCart();
   const quote = useCartQuote(lines, drawerOpen);
+  useOverlay(drawerOpen, () => setDrawerOpen(false));
   if (!drawerOpen) return null;
   const total = subtotal - quote.total;
   const left = quote.freeDelivery ? 0 : Math.max(0, freeDeliveryFrom - total);
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
-      <aside className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-cream shadow-2xl">
+      <aside className="absolute inset-y-0 right-0 flex w-[92%] max-w-md flex-col bg-cream shadow-2xl sm:w-full">
         <div className="flex items-center justify-between border-b border-line px-6 py-5">
           <h2 className="h-display text-2xl">Корзина</h2>
           <button onClick={() => setDrawerOpen(false)} aria-label="Закрыть"><CloseIcon className="h-6 w-6" /></button>
@@ -81,7 +83,10 @@ export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliver
                 <span className="font-semibold">{rub(total)}</span>
               </div>
               <Link href="/checkout" onClick={() => setDrawerOpen(false)} className="btn-dark w-full">Оформить заказ</Link>
-              <Link href="/cart" onClick={() => setDrawerOpen(false)} className="mt-2 block text-center text-sm text-ink-soft underline underline-offset-4">Перейти в корзину</Link>
+              <div className="mt-3 flex items-center justify-between text-sm">
+                <button onClick={() => setDrawerOpen(false)} className="text-ink-soft underline underline-offset-4 hover:text-ink">← Продолжить покупки</button>
+                <Link href="/cart" onClick={() => setDrawerOpen(false)} className="text-ink-soft underline underline-offset-4 hover:text-ink">Перейти в корзину</Link>
+              </div>
             </div>
           </>
         )}
