@@ -5,7 +5,7 @@ import { updateDb } from "./db";
 import { toView } from "./catalog";
 import type { Order } from "./types";
 import { quoteCart, type CartQuote } from "./promo";
-import { GIFT_BOX, GIFT_BOXES, WELCOME_BONUS, levelFor, normPhone, parseGiftCard } from "./club";
+import { GIFT_BOX, GIFT_BOXES, WELCOME_BONUS, normPhone, parseGiftCard, pointsForOrder, yearSpend } from "./club";
 
 export async function submitReview(fd: FormData) {
   const productId = String(fd.get("productId"));
@@ -96,14 +96,15 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
     const promos = [...quote.discounts.map((d) => ({ title: d.title, amount: d.amount })), ...quote.gifts.map((g) => ({ title: g.title, amount: 0, gift: g.text }))];
     const deliveryPrice = input.delivery === "pickup" || quote.freeDelivery || subtotal - discount >= db.settings.freeDeliveryFrom ? 0 : db.settings.deliveryPrice;
     const number = 1000 + db.orders.length + 1;
-    // Клуб Katy: баллы за заказ участнику с этим телефоном
+    // Клуб Katy: баллы за заказ участнику с этим телефоном (правила — в club.ts, pointsForOrder)
     const member = (db.members ?? []).find((m) => m.phone === normPhone(c.phone));
+    let pointsEarned = 0;
     if (member) {
-      const yearAgo = Date.now() - 365 * 86400000;
-      const spend = db.orders.filter((o) => normPhone(o.customer.phone) === member.phone && o.status !== "cancelled" && new Date(o.createdAt).getTime() > yearAgo).reduce((s, o) => s + o.total, 0);
       // сертификаты баллами не облагаются — баллы начислятся, когда сертификатом оплатят товары
       const base = items.filter((i) => i.productId !== "gift-card").reduce((s, i) => s + i.price * i.qty, 0);
-      member.points += Math.floor((Math.max(0, base - discount) * levelFor(spend).percent) / 100);
+      pointsEarned = pointsForOrder({ goodsTotal: Math.max(0, base - discount), yearSpend: yearSpend(db.orders, member.phone) });
+      member.points += pointsEarned;
+      if (pointsEarned) (member.history ??= []).unshift({ at: new Date().toISOString(), kind: "order", points: pointsEarned, orderNumber: number });
     }
     db.orders.unshift({
       id: crypto.randomUUID(),
@@ -120,6 +121,7 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       total: subtotal - discount + deliveryPrice,
       promoCode,
       promos: promos.length ? promos : undefined,
+      pointsEarned: pointsEarned || undefined,
       gift: db.settings.giftText,
       status: "new",
     });
@@ -143,7 +145,7 @@ export async function joinClub(input: { name: string; phone: string; birthday?: 
     db.members ??= [];
     const found = db.members.find((m) => m.phone === phone);
     if (found) return { ok: true as const, points: found.points, already: true };
-    db.members.unshift({ phone, name, birthday, email: input.email?.trim().slice(0, 100) || undefined, points: WELCOME_BONUS, createdAt: new Date().toISOString() });
+    db.members.unshift({ phone, name, birthday, email: input.email?.trim().slice(0, 100) || undefined, points: WELCOME_BONUS, createdAt: new Date().toISOString(), history: [{ at: new Date().toISOString(), kind: "welcome", points: WELCOME_BONUS }] });
     return { ok: true as const, points: WELCOME_BONUS, already: false };
   });
   revalidatePath("/admin/club");

@@ -33,7 +33,10 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
         <p className="text-5xl">💐</p>
         <h2 className="h-display mt-4 text-4xl">Спасибо за заказ!</h2>
         <p className="mt-3 text-ink-soft">Номер заказа <b className="text-ink">№{done}</b>. Мы свяжемся с вами в ближайшее время, чтобы подтвердить детали. В посылку положим подарок: {giftText.toLowerCase()}.</p>
-        <Link href="/" className="btn-dark mt-6">На главную</Link>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/" className="btn-dark">На главную</Link>
+          <Link href="/account" className="btn-light">Мои заказы и баллы</Link>
+        </div>
       </div>
     );
 

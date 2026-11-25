@@ -174,6 +174,8 @@ export type Order = {
   promoCode?: string;
   /** скидки и подарки по акциям в корзине */
   promos?: { title: string; amount: number; gift?: string }[];
+  /** баллы Клуба Katy, начисленные за заказ */
+  pointsEarned?: number;
   gift: string;
   status: OrderStatus;
 };
@@ -202,6 +204,7 @@ export type Database = {
   orders: Order[];
   /** Участники Клуба Katy */
   members?: ClubMember[];
+  loginCodes?: LoginCode[];
   /** Версия демо-данных: при обновлении сайта новые разделы и товары добавляются в уже сохранённые данные */
   seedVersion?: number;
 };
@@ -214,4 +217,17 @@ export type ClubMember = {
   email?: string;
   points: number;
   createdAt: string;
+  /** история баллов: начисления и списания */
+  history?: PointsEntry[];
 };
+
+export type PointsEntry = {
+  at: string;
+  kind: "welcome" | "order" | "birthday" | "manual" | "store";
+  points: number; // + начислено, − списано
+  orderNumber?: number;
+  note?: string;
+};
+
+/** Одноразовый код для входа в личный кабинет (хранится только хэш) */
+export type LoginCode = { phone: string; hash: string; expires: string; tries: number; sentAt: string[] };

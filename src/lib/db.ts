@@ -14,8 +14,6 @@ function withImages(db: Database): Database {
   return db;
 }
 
-let cache: Database | null = null;
-let loading: Promise<Database> | null = null;
 let queue: Promise<unknown> = Promise.resolve();
 
 export const SEED_VERSION = 3;
@@ -65,10 +63,9 @@ async function load(): Promise<Database> {
 
 export async function getDb(): Promise<Database> {
   // На Cloudflare несколько копий сайта работают параллельно — читаем свежие данные каждый раз
-  if (isKv()) return load();
-  if (cache) return cache;
-  loading ??= load().then((db) => (cache = db));
-  return loading;
+  // Файл тоже читаем каждый раз: у Next.js несколько копий модулей в одном процессе,
+  // и общий кэш в памяти приводил к тому, что одна копия затирала изменения другой.
+  return load();
 }
 
 /** Изменить данные: изменения выполняются по очереди и сразу сохраняются */
@@ -85,6 +82,5 @@ export async function updateDb<T>(fn: (db: Database) => T | Promise<T>): Promise
 
 export async function resetDb() {
   const seed = withImages({ ...createSeed(), seedVersion: SEED_VERSION });
-  if (!isKv()) cache = seed;
   await writeDb(seed);
 }

@@ -16,7 +16,7 @@ export default async function ClubAdmin() {
   };
   return (
     <div>
-      <PageHead title="Клуб Katy" desc="Участники программы лояльности. Баллы начисляются автоматически за заказы на сайте с тем же номером телефона. Позже подключим вашу накопительную систему из магазинов." />
+      <PageHead title="Клуб Katy" desc="Участники программы лояльности. Баллы начисляются автоматически за заказы на сайте с тем же номером телефона. Нажмите на имя — откроется карточка клиента со всеми покупками и историей баллов. Позже подключим вашу накопительную систему из магазинов." />
       <p className="mb-3 text-sm text-ink-soft">Участников: {members.length}{members.filter((m) => soon(m.birthday)).length ? ` · день рождения на этой неделе: ${members.filter((m) => soon(m.birthday)).length}` : ""}</p>
       <div className="card overflow-x-auto p-0">
         <table className="w-full text-sm">
@@ -26,7 +26,7 @@ export default async function ClubAdmin() {
           <tbody>
             {members.map((m) => (
               <tr key={m.phone} className="border-t border-line">
-                <td className="p-4 font-medium">{m.name}{soon(m.birthday) && <span className="ml-2 rounded-full bg-rose px-2 py-0.5 text-[11px] font-bold text-white">🎂 скоро ДР</span>}</td>
+                <td className="p-4 font-medium"><a href={`/admin/club/${m.phone}`} className="underline underline-offset-4 hover:text-rose">{m.name}</a>{soon(m.birthday) && <span className="ml-2 rounded-full bg-rose px-2 py-0.5 text-[11px] font-bold text-white">🎂 скоро ДР</span>}</td>
                 <td className="p-4">+{m.phone}</td>
                 <td className="p-4">{m.birthday ? new Date(m.birthday).toLocaleDateString("ru-RU", { day: "numeric", month: "long" }) : "—"}</td>
                 <td className="p-4 font-semibold">{m.points}</td>

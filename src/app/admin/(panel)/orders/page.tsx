@@ -1,4 +1,5 @@
 import { PageHead, statusLabels } from "@/components/admin/ui";
+import { normPhone } from "@/lib/club";
 import { getDb } from "@/lib/db";
 import { rub } from "@/lib/format";
 import { setOrderStatus } from "@/lib/admin-actions";
@@ -25,7 +26,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-6 gap-y-2">
               <b className="text-lg">№{o.number}</b>
               <span className="text-sm text-ink-soft">{new Date(o.createdAt).toLocaleString("ru-RU")}</span>
-              <span className="text-sm">{o.customer.name} · {o.customer.phone}</span>
+              <a href={`/admin/club/${normPhone(o.customer.phone)}`} className="text-sm underline-offset-4 hover:underline" title="Карточка клиента: все покупки">{o.customer.name} · {o.customer.phone}</a>
               <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusLabels[o.status][1]}`}>{statusLabels[o.status][0]}</span>
               <b className="ml-auto text-lg">{rub(o.total)}</b>
             </summary>

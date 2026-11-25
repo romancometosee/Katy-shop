@@ -3,7 +3,7 @@ import type { Database, Product } from "./types";
 import { toView } from "./catalog";
 
 /** Секреты хранятся в настройках Cloudflare (или на сервере), в коде их нет */
-async function secret(name: string): Promise<string | undefined> {
+export async function secret(name: string): Promise<string | undefined> {
   if (process.env[name]) return process.env[name];
   try {
     const { getCloudflareContext } = await import("@opennextjs/cloudflare");

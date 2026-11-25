@@ -294,6 +294,23 @@ export async function saveAdvent(fd: FormData) {
   done("/admin/promotions/advent");
 }
 
+/** Начислить или списать баллы клиенту вручную (например, покупка в магазине или подарок) */
+export async function adjustPoints(fd: FormData) {
+  await requireAdmin();
+  const phone = str(fd, "phone");
+  const points = Math.round(num(fd, "points"));
+  const note = str(fd, "note").slice(0, 120);
+  const kind = str(fd, "kind") === "store" ? "store" : "manual";
+  if (!points) return;
+  await updateDb((db) => {
+    const m = (db.members ?? []).find((x) => x.phone === phone);
+    if (!m) return;
+    m.points = Math.max(0, m.points + points);
+    (m.history ??= []).unshift({ at: new Date().toISOString(), kind, points, note: note || undefined });
+  });
+  done(`/admin/club/${phone}`);
+}
+
 export async function deletePromotion(fd: FormData) {
   await requireAdmin();
   const id = str(fd, "id");

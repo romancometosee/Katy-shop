@@ -9,7 +9,7 @@ import SearchSuggest from "./SearchSuggest";
 import MicButton from "./MicButton";
 import { useOverlay } from "./useOverlay";
 import { categoryImages } from "@/lib/productImages";
-import { BagIcon, ChevronDown, ChevronRight, CloseIcon, HeartIcon, MenuIcon, SearchIcon } from "./Icons";
+import { BagIcon, ChevronDown, ChevronRight, CloseIcon, HeartIcon, MenuIcon, SearchIcon, UserIcon } from "./Icons";
 import type { ProductArt as Art } from "@/lib/types";
 
 export type NavItem = {
@@ -94,6 +94,9 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
           <div className="ml-auto flex items-center gap-1 lg:ml-0">
             <Link href="/search" className="p-2 lg:hidden" aria-label="Поиск">
               <SearchIcon className="h-6 w-6" />
+            </Link>
+            <Link href="/account" className="hidden p-2 sm:block" aria-label="Личный кабинет" title="Личный кабинет">
+              <UserIcon className="h-6 w-6" />
             </Link>
             <Link href="/favorites" className="relative p-2" aria-label="Избранное">
               <HeartIcon className="h-6 w-6" />
@@ -218,7 +221,7 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
                   )}
                 </li>
               ))}
-              {[["Бренды", "/brands"], ["Подбор аромата", "/podbor"], ["Акции", "/sale"], ["Доставка и оплата", "/delivery"]].map(([n, h]) => (
+              {[["Бренды", "/brands"], ["Подбор аромата", "/podbor"], ["Акции", "/sale"], ["Личный кабинет", "/account"], ["Доставка и оплата", "/delivery"]].map(([n, h]) => (
                 <li key={h} className="border-b border-line">
                   <Link href={h} onClick={() => setMobile(false)} className="block px-2 py-4 font-semibold">{n}</Link>
                 </li>

@@ -25,6 +25,7 @@ export default function Footer({ settings, categories }: { settings: Settings; c
         <div>
           <p className="mb-4 text-xs font-semibold uppercase tracking-[.2em] text-white">Покупателям</p>
           <ul className="space-y-2 text-sm">
+            <li><Link href="/account" className="hover:text-white">Личный кабинет и мои заказы</Link></li>
             <li><Link href="/delivery" className="hover:text-white">Доставка и оплата</Link></li>
             <li><Link href="/podbor" className="hover:text-white">Подбор аромата</Link></li>
             <li><Link href="/journal" className="hover:text-white">Журнал Katy</Link></li>

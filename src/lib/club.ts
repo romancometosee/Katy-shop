@@ -23,6 +23,27 @@ export function levelFor(yearSpend: number) {
   return [...CLUB_LEVELS].reverse().find((l) => yearSpend >= l.from) ?? CLUB_LEVELS[0];
 }
 
+export function nextLevel(yearSpend: number) {
+  return CLUB_LEVELS.find((l) => l.from > yearSpend);
+}
+
+/**
+ * ПРАВИЛА НАЧИСЛЕНИЯ БАЛЛОВ — здесь одно место для правил магазина.
+ * Сейчас: процент уровня от суммы товаров (без сертификатов и после скидок).
+ * Когда Роман пришлёт правила накопительной системы, меняем только эту функцию.
+ */
+export function pointsForOrder(o: { goodsTotal: number; yearSpend: number }) {
+  return Math.max(0, Math.floor((o.goodsTotal * levelFor(o.yearSpend).percent) / 100));
+}
+
+/** Сумма покупок клиента за последние 12 месяцев (для уровня) */
+export function yearSpend(orders: { customer: { phone: string }; status: string; createdAt: string; total: number }[], phone: string) {
+  const yearAgo = Date.now() - 365 * 86400000;
+  return orders.filter((o) => normPhone(o.customer.phone) === phone && o.status !== "cancelled" && new Date(o.createdAt).getTime() > yearAgo).reduce((s, o) => s + o.total, 0);
+}
+
+export const POINTS_KIND: Record<string, string> = { welcome: "Приветственные баллы", order: "За заказ", birthday: "Подарок на день рождения", manual: "Начислено магазином", store: "Покупка в магазине" };
+
 // ---------- Подарочные сертификаты ----------
 export const GIFT_AMOUNTS = [1000, 3000, 5000, 10000];
 export const GIFT_MIN = 500;
