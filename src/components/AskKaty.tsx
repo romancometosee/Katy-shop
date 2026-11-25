@@ -192,7 +192,7 @@ export default function AskKaty() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Спросить Katy"
-        className={`fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-ink py-2.5 pl-2.5 pr-4 text-sm font-semibold sm:py-3 sm:pl-3.5 sm:pr-5 text-white shadow-xl transition duration-300 hover:-translate-y-0.5 hover:bg-[#2b2422] sm:bottom-6 sm:right-6 ${open ? "pointer-events-none translate-y-4 opacity-0" : ""}`}
+        className={`katy-fab fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-ink py-2.5 pl-2.5 pr-4 text-sm font-semibold sm:py-3 sm:pl-3.5 sm:pr-5 text-white shadow-xl transition duration-300 hover:-translate-y-0.5 hover:bg-[#2b2422] sm:bottom-6 sm:right-6 ${open ? "pointer-events-none translate-y-4 opacity-0" : ""}`}
       >
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#f2b8c0] to-[#e8c98f] text-ink">
           <Sparkle className="h-4 w-4" />

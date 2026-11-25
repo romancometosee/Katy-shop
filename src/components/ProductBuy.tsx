@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartProvider";
 import { GiftIcon, HeartIcon, MinusIcon, PlusIcon, ShieldIcon, TruckIcon } from "./Icons";
 import { rub } from "@/lib/format";
@@ -13,7 +13,24 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: Produ
   const [qty, setQty] = useState(1);
   const v = p.variants.find((x) => x.id === vid) ?? p.variants[0];
   const fav = favorites.includes(p.id);
+  // на телефоне: когда кнопка «Добавить в корзину» уехала вверх, внизу экрана появляется закреплённая кнопка
+  const buyRef = useRef<HTMLDivElement>(null);
+  const [bar, setBar] = useState(false);
+  useEffect(() => {
+    const el = buyRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setBar(!e.isIntersecting && e.boundingClientRect.top < 0));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    const phone = window.matchMedia("(max-width: 1023px)").matches;
+    if (bar && phone) document.documentElement.dataset.buybar = "1";
+    else delete document.documentElement.dataset.buybar;
+    return () => { delete document.documentElement.dataset.buybar; };
+  }, [bar]);
   if (!v) return null;
+  const addNow = () => add({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art }, qty);
 
   return (
     <div>
@@ -43,7 +60,7 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: Produ
         </div>
       )}
 
-      <div className="mt-6 flex gap-3">
+      <div ref={buyRef} className="mt-6 flex gap-3">
         <div className="flex items-center rounded-full border border-line bg-white">
           <button className="p-3" onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Меньше"><MinusIcon className="h-4 w-4" /></button>
           <span className="w-6 text-center">{qty}</span>
@@ -51,7 +68,7 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: Produ
         </div>
         <button
           disabled={v.stock <= 0}
-          onClick={() => add({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art }, qty)}
+          onClick={addNow}
           className="btn-dark flex-1 py-4"
         >
           {v.stock > 0 ? "Добавить в корзину" : "Нет в наличии"}
@@ -60,6 +77,23 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: Produ
           <HeartIcon className={`h-5 w-5 ${fav ? "fill-current" : ""}`} />
         </button>
       </div>
+
+      {/* закреплённая кнопка внизу экрана (только телефон и планшет) */}
+      {bar && (
+        <div className="toast-in fixed inset-x-0 bottom-0 z-40 border-t border-line bg-cream/95 px-4 py-3 backdrop-blur lg:hidden" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+          <div className="mx-auto flex max-w-xl items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs text-ink-soft">{p.brandName} · {v.label}</p>
+              <p className={`text-lg font-semibold leading-tight ${v.oldPrice ? "text-rose" : ""}`}>
+                {rub(v.price)} {v.oldPrice && <span className="text-sm font-normal text-ink-soft line-through">{rub(v.oldPrice)}</span>}
+              </p>
+            </div>
+            <button disabled={v.stock <= 0} onClick={addNow} className="btn-dark shrink-0 px-7 py-3.5">
+              {v.stock > 0 ? "В корзину" : "Нет в наличии"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <ul className="mt-6 space-y-3 rounded-3xl bg-white p-5 text-sm">
         <li className="flex items-center gap-3"><GiftIcon className="h-5 w-5 text-rose" /> Подарок к заказу: {giftText.toLowerCase()}</li>

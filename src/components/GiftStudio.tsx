@@ -123,7 +123,7 @@ function CardBuilder() {
 }
 
 function BoxBuilder({ products }: { products: ProductView[] }) {
-  const { add } = useCart();
+  const { add, setDrawerOpen } = useCart();
   const [box, setBox] = useState(GIFT_BOXES[0]);
   const [picked, setPicked] = useState<string[]>([]);
   const [filter, setFilter] = useState("all");
@@ -217,6 +217,7 @@ function BoxBuilder({ products }: { products: ProductView[] }) {
               add({ productId: GIFT_BOX.id, variantId: `box-${box.id}-${rand()}`, slug: "/gift?tab=box", name: "Подарочная упаковка", brandName: "Katy", variantLabel: box.name, price: GIFT_BOX.price, art: { ...giftArt, bg: box.color }, note: card.trim() || undefined });
               setPicked([]);
               setCard("");
+              setDrawerOpen(true);
             }}
             className="btn-dark mt-4 w-full py-3.5 disabled:opacity-40"
           >

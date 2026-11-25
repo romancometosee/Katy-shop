@@ -30,6 +30,9 @@ type Ctx = {
   toggleFavorite: (productId: string) => void;
   drawerOpen: boolean;
   setDrawerOpen: (v: boolean) => void;
+  /** плашка «Добавлено в корзину» на 3 секунды вместо открытия корзины */
+  toast: { line: Omit<CartLine, "qty">; qty: number; id: number } | null;
+  hideToast: () => void;
 };
 
 const CartContext = createContext<Ctx | null>(null);
@@ -53,6 +56,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [toast, setToast] = useState<Ctx["toast"]>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   useEffect(() => {
     setLines(load("katy-cart", []));
@@ -73,7 +82,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           if (found) return prev.map((l) => (l.variantId === line.variantId ? { ...l, ...line, qty: l.qty + qty } : l));
           return [...prev, { ...line, qty }];
         });
-        setDrawerOpen(true);
+        setToast({ line, qty, id: Date.now() });
       },
       setQty: (variantId, qty) =>
         setLines((prev) => (qty <= 0 ? prev.filter((l) => l.variantId !== variantId) : prev.map((l) => (l.variantId === variantId ? { ...l, qty } : l)))),
@@ -82,9 +91,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       favorites,
       toggleFavorite: (id) => setFavorites((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
       drawerOpen,
-      setDrawerOpen,
+      setDrawerOpen: (v: boolean) => { if (v) setToast(null); setDrawerOpen(v); },
+      toast,
+      hideToast: () => setToast(null),
     }),
-    [lines, favorites, drawerOpen],
+    [lines, favorites, drawerOpen, toast],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

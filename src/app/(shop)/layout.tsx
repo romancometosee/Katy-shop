@@ -1,6 +1,7 @@
 import Header, { type NavItem } from "@/components/Header";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
+import AddedToast from "@/components/AddedToast";
 import AskKaty from "@/components/AskKaty";
 import { CartProvider } from "@/components/CartProvider";
 import { getDb } from "@/lib/db";
@@ -27,6 +28,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
       <Header shopName={db.settings.shopName} announcement={db.settings.announcement} nav={nav} />
       <main className="min-h-[60vh]">{children}</main>
       <Footer settings={db.settings} categories={tops} />
+      <AddedToast />
       <CartDrawer freeDeliveryFrom={db.settings.freeDeliveryFrom} giftText={db.settings.giftText} />
       <AskKaty />
     </CartProvider>

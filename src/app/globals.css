@@ -119,3 +119,23 @@ body {
   to { opacity: 1; }
 }
 .menu-fade { animation: menu-fade .18s ease-out; }
+
+/* плашка «Добавлено в корзину» */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+.toast-in { animation: toast-in .25s ease-out; }
+.toast-pos { bottom: 5rem; }
+/* на телефоне на странице товара внизу закреплена кнопка «В корзину» — поднимаем плашку и Katy над ней */
+html[data-buybar] .toast-pos { bottom: 6.5rem; }
+@media (max-width: 1023px) {
+  html[data-buybar] .katy-fab { bottom: 5.75rem; }
+  html[data-buybar] body { padding-bottom: 5rem; }
+}
+@media (min-width: 640px) {
+  .toast-pos { bottom: auto; }
+}
+@media (max-width: 639px) {
+  html[data-toast] .katy-fab { opacity: 0; pointer-events: none; }
+}
