@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { abs } from "@/lib/site";
+import { currentCustomer } from "@/lib/customer";
+import { isProProduct, proFor, proPrice } from "@/lib/pro";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ProductBuy from "@/components/ProductBuy";
 import ProductTabs from "@/components/ProductTabs";
@@ -43,6 +45,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const cat = db.categories.find((c) => c.id === product.categoryId);
   const sub = db.categories.find((c) => c.id === product.subcategoryId);
   const reviews = product.reviews.filter((r) => r.approved);
+  const master = isProProduct(db, product) ? proFor(db, await currentCustomer()) : undefined;
+  const pro = master ? { discount: master.discount, prices: Object.fromEntries(p.variants.map((v) => [v.id, proPrice(product.variants.find((x) => x.id === v.id)?.price ?? v.price, v.price, master.discount)])) } : undefined;
   const routine = routineFor(db, product);
   const related = searchProducts(db, { subcategory: product.subcategoryId }).filter((x) => x.id !== p.id).slice(0, 4);
   const sameBrand = searchProducts(db, { brands: [product.brandId] }).filter((x) => x.id !== p.id).slice(0, 4);
@@ -134,7 +138,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </Link>
           ))}
           <div className="mt-8">
-            <ProductBuy p={p} giftText={db.settings.giftText} freeDeliveryFrom={db.settings.freeDeliveryFrom} />
+            <ProductBuy p={p} giftText={db.settings.giftText} freeDeliveryFrom={db.settings.freeDeliveryFrom} pro={pro} />
           </div>
           <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
             {facts.map(([k, v]) => (

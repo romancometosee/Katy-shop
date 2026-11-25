@@ -11,6 +11,7 @@ import { getDb } from "./db";
 import { sendSms } from "./customer";
 import { headers } from "next/headers";
 import { slugify } from "./slug";
+import { normPhone } from "./club";
 import type { ArtShape, Banner, Database, Gender, OrderStatus, Product, Promotion, PromotionKind, PromotionScope, Settings, Variant } from "./types";
 
 async function requireAdmin() {
@@ -494,4 +495,66 @@ export async function closeStockAlert(fd: FormData) {
   const id = str(fd, "id");
   await updateDb((db) => { db.stockAlerts = (db.stockAlerts ?? []).filter((a) => a.id !== id); });
   done("/admin/waitlist");
+}
+
+// ---------- Katy PRO ----------
+const newCode = () => String(100000 + Math.floor(Math.random() * 900000));
+
+/** Одобрить мастера (или поменять скидку): выдаётся код для входа */
+export async function approvePro(fd: FormData) {
+  await requireAdmin();
+  const phone = str(fd, "phone");
+  const discount = Math.min(50, Math.max(1, Math.round(num(fd, "discount")) || 20));
+  await updateDb((db) => {
+    const p = (db.pros ?? []).find((x) => x.phone === phone);
+    if (!p) return;
+    if (p.status !== "approved") { p.approvedAt = new Date().toISOString(); p.code ??= newCode(); }
+    p.status = "approved";
+    p.discount = discount;
+  });
+  done("/admin/pro");
+}
+
+export async function rejectPro(fd: FormData) {
+  await requireAdmin();
+  const phone = str(fd, "phone");
+  await updateDb((db) => { const p = (db.pros ?? []).find((x) => x.phone === phone); if (p) p.status = "rejected"; });
+  done("/admin/pro");
+}
+
+export async function deletePro(fd: FormData) {
+  await requireAdmin();
+  const phone = str(fd, "phone");
+  await updateDb((db) => { db.pros = (db.pros ?? []).filter((x) => x.phone !== phone); });
+  done("/admin/pro");
+}
+
+/** Новый код входа (если мастер потерял старый) */
+export async function newProCode(fd: FormData) {
+  await requireAdmin();
+  const phone = str(fd, "phone");
+  await updateDb((db) => { const p = (db.pros ?? []).find((x) => x.phone === phone); if (p) p.code = newCode(); });
+  done("/admin/pro");
+}
+
+/** Добавить мастера вручную (например, давний клиент салона) */
+export async function addPro(fd: FormData) {
+  await requireAdmin();
+  const phone = normPhone(str(fd, "phone"));
+  const name = str(fd, "name");
+  if (phone.length !== 11 || !name) return;
+  await updateDb((db) => {
+    db.pros ??= [];
+    if (db.pros.some((p) => p.phone === phone)) return;
+    db.pros.unshift({ phone, name, kind: str(fd, "kind") || "other", salon: str(fd, "salon") || undefined, city: str(fd, "city") || undefined, status: "approved", discount: Math.min(50, Math.max(1, Math.round(num(fd, "discount")) || 20)), code: newCode(), createdAt: new Date().toISOString(), approvedAt: new Date().toISOString() });
+  });
+  done("/admin/pro");
+}
+
+/** На какие разделы действуют цены PRO */
+export async function saveProCategories(fd: FormData) {
+  await requireAdmin();
+  const ids = fd.getAll("cat").map(String);
+  await updateDb((db) => { db.settings.proCategories = ids; });
+  done("/admin/pro");
 }

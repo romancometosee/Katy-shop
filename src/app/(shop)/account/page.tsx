@@ -8,6 +8,7 @@ import { DISCOUNT_LEVELS, discountLevel, normPhone, totalSpend } from "@/lib/clu
 import { dateRu, rub } from "@/lib/format";
 import { toView } from "@/lib/catalog";
 import RepeatOrder from "@/components/RepeatOrder";
+import { proFor } from "@/lib/pro";
 import type { CartLine } from "@/components/CartProvider";
 
 export const metadata = { title: "Личный кабинет", robots: { index: false } };
@@ -38,7 +39,8 @@ export default async function AccountPage() {
   const next = level.next;
   const maxPercent = DISCOUNT_LEVELS[DISCOUNT_LEVELS.length - 1].percent;
   const storeBuys = (member?.history ?? []).filter((h) => h.kind === "storeSpend");
-  const name = member?.name ?? orders[0]?.customer.name ?? "";
+  const pro = proFor(db, phone);
+  const name = member?.name ?? pro?.name ?? orders[0]?.customer.name ?? "";
   // для «Повторить заказ»: что из заказа есть сейчас и по какой цене
   const repeat = (o: (typeof orders)[number]) => {
     const lines: CartLine[] = [];
@@ -69,6 +71,13 @@ export default async function AccountPage() {
       <div className="mt-8 grid gap-6 lg:grid-cols-[380px_1fr]">
         {/* карта клуба: накопительная скидка */}
         <div className="space-y-6">
+          {pro && (
+            <Link href="/pro" className="block rounded-[1.75rem] border border-[#e8c98f] bg-white p-6">
+              <p className="text-xs font-semibold uppercase tracking-[.28em] text-[#b8935a]">Katy PRO · {pro.salon || "мастер"}</p>
+              <p className="h-display mt-1 text-4xl">−{pro.discount}%</p>
+              <p className="text-sm text-ink-soft">ваша цена мастера на профессиональные товары — уже в ценах на сайте</p>
+            </Link>
+          )}
           <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[#1c1917] to-[#3a2e2a] p-7 text-[#e8c98f] shadow-xl">
             <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-[#e8c98f]/20 blur-2xl" />
             <p className="h-display text-2xl tracking-[.3em]">KATY</p>
@@ -153,6 +162,7 @@ export default async function AccountPage() {
               </details>
             ))}
           </div>
+          {!pro && <p className="mt-6 text-sm text-ink-soft">Вы мастер или салон? <Link href="/pro" className="font-semibold text-ink underline underline-offset-4">Katy PRO</Link> — профессиональные цены для мастеров.</p>}
           <p className="mt-6 text-xs text-ink-soft">Покупки в магазинах Katy появятся здесь, когда подключим кассы магазинов.</p>
         </div>
       </div>

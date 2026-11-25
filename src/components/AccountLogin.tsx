@@ -49,7 +49,7 @@ export default function AccountLogin({ sms }: { sms: boolean }) {
         )}
         {!sms && (
           <>
-            <input value={order} onChange={(e) => setOrder(e.target.value)} required placeholder="Номер любого вашего заказа, например 1024" inputMode="numeric" className="input" />
+            <input value={order} onChange={(e) => setOrder(e.target.value)} required placeholder="Номер любого заказа (или код мастера PRO)" inputMode="numeric" className="input" />
             <p className="text-xs text-ink-soft">Скоро вход будет по коду из SMS. Пока подтвердите, что это вы, номером заказа: он есть в письме и в сообщении от менеджера.</p>
           </>
         )}

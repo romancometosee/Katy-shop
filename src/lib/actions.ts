@@ -5,6 +5,8 @@ import { updateDb } from "./db";
 import { toView } from "./catalog";
 import type { Order } from "./types";
 import { quoteCart, type CartQuote } from "./promo";
+import { isProProduct, proFor, proPrice, PRO_KINDS } from "./pro";
+import { currentCustomer } from "./customer";
 import { GIFT_BOX, GIFT_BOXES, LOYALTY_MODE, WELCOME_BONUS, discountLevel, normPhone, parseGiftCard, pointsForOrder, totalSpend, yearSpend } from "./club";
 
 export async function submitReview(fd: FormData) {
@@ -54,7 +56,10 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
   const c = input.customer;
   if (!c.name?.trim() || !c.phone?.trim()) return { ok: false, error: "Укажите имя и телефон" };
   if (!input.items.length) return { ok: false, error: "Корзина пуста" };
+  const session = await currentCustomer();
   const result = await updateDb((db) => {
+    // Katy PRO: вошедший мастер покупает проф. товары по своей цене
+    const pro = proFor(db, session);
     const items: Order["items"] = [];
     for (const it of input.items) {
       const qty0 = Math.max(1, Math.min(20, Math.floor(it.qty)));
@@ -77,17 +82,19 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       const raw = p?.variants.find((x) => x.id === it.variantId);
       if (!p || !v || !raw) continue;
       const qty = Math.max(1, Math.min(99, Math.floor(it.qty)));
-      items.push({ productId: p.id, variantId: v.id, name: `${view!.brandName} ${p.name}`, variantLabel: v.label, price: v.price, qty });
+      const asPro = pro && isProProduct(db, p);
+      items.push({ productId: p.id, variantId: v.id, name: `${view!.brandName} ${p.name}`, variantLabel: v.label, price: asPro ? proPrice(raw.price, v.price, pro.discount) : v.price, qty, ...(asPro ? { pro: true } : {}) });
       raw.stock = Math.max(0, raw.stock - qty);
     }
     if (!items.length) return { ok: false as const, error: "Товары из корзины больше недоступны" };
     const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
     // акции корзины: 3=2, подарки, ступенчатые скидки, бесплатная доставка
-    const quote = quoteCart(db, items.filter((i) => i.productId !== "gift-card" && i.productId !== GIFT_BOX.id));
+    // товары по цене PRO в акциях и других скидках не участвуют — цена мастера уже самая выгодная
+    const quote = quoteCart(db, items.filter((i) => i.productId !== "gift-card" && i.productId !== GIFT_BOX.id && !i.pro));
     let discount = quote.total;
     let promoCode: string | undefined;
     // база для скидок: товары без сертификатов, после акций корзины
-    const goods = items.filter((i) => i.productId !== "gift-card" && i.productId !== GIFT_BOX.id).reduce((s, i) => s + i.price * i.qty, 0);
+    const goods = items.filter((i) => i.productId !== "gift-card" && i.productId !== GIFT_BOX.id && !i.pro).reduce((s, i) => s + i.price * i.qty, 0);
     const base = Math.max(0, goods - quote.total);
     // накопительная скидка по телефону; с промокодом не суммируется — берём бо́льшую
     const loyaltyPercent = LOYALTY_MODE === "discount" ? discountLevel(totalSpend(db, normPhone(c.phone))).percent : 0;
@@ -134,6 +141,7 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       promos: promos.length ? promos : undefined,
       pointsEarned: pointsEarned || undefined,
       loyaltyPercent: usedLoyalty ? loyaltyPercent : undefined,
+      proDiscount: items.some((i) => i.pro) ? pro!.discount : undefined,
       gift: db.settings.giftText,
       status: "new",
     });
@@ -188,5 +196,44 @@ export async function subscribeStock(input: { productId: string; variantId: stri
       db.stockAlerts.push({ id: crypto.randomUUID(), productId: p.id, variantId: v.id, phone, createdAt: new Date().toISOString() });
     }
     return { ok: true as const };
+  });
+}
+
+/** Katy PRO: цены мастера для товаров в корзине (только для вошедшего одобренного мастера) */
+export async function proPricesAction(items: { productId: string; variantId: string }[]): Promise<{ discount: number; prices: Record<string, number> } | null> {
+  const session = await currentCustomer();
+  if (!session) return null;
+  const { getDb } = await import("./db");
+  const db = await getDb();
+  const pro = proFor(db, session);
+  if (!pro) return null;
+  const prices: Record<string, number> = {};
+  for (const it of items.slice(0, 100)) {
+    const p = db.products.find((x) => x.id === it.productId && x.isActive);
+    if (!p || !isProProduct(db, p)) continue;
+    const raw = p.variants.find((x) => x.id === it.variantId);
+    const v = toView(db, p).variants.find((x) => x.id === it.variantId);
+    if (raw && v) prices[it.variantId] = proPrice(raw.price, v.price, pro.discount);
+  }
+  return { discount: pro.discount, prices };
+}
+
+/** Katy PRO: заявка мастера или салона */
+export async function applyPro(input: { name: string; phone: string; kind: string; salon?: string; city?: string; social?: string; comment?: string }) {
+  const phone = normPhone(input.phone ?? "");
+  const name = input.name?.trim().slice(0, 80);
+  if (!name || phone.length !== 11) return { ok: false as const, error: "Укажите имя и телефон" };
+  const kind = PRO_KINDS[input.kind] ? input.kind : "other";
+  const clip = (s?: string, n = 120) => s?.trim().slice(0, n) || undefined;
+  return updateDb((db) => {
+    db.pros ??= [];
+    const found = db.pros.find((p) => p.phone === phone);
+    if (found?.status === "approved") return { ok: true as const, status: "approved" as const };
+    if (found) Object.assign(found, { name, kind, salon: clip(input.salon), city: clip(input.city, 60), social: clip(input.social), comment: clip(input.comment, 300), status: "pending", createdAt: new Date().toISOString() });
+    else {
+      if (db.pros.length > 3000) return { ok: false as const, error: "Попробуйте позже или позвоните нам" };
+      db.pros.unshift({ phone, name, kind, salon: clip(input.salon), city: clip(input.city, 60), social: clip(input.social), comment: clip(input.comment, 300), status: "pending", discount: 0, createdAt: new Date().toISOString() });
+    }
+    return { ok: true as const, status: "pending" as const };
   });
 }

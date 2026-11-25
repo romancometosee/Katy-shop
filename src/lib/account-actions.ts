@@ -48,9 +48,11 @@ export async function verifyCode(rawPhone: string, code: string): Promise<AuthRe
 /** Пока SMS не подключены: телефон + номер любого своего заказа */
 export async function loginByOrder(rawPhone: string, orderNumber: string): Promise<AuthResult> {
   const phone = normPhone(rawPhone ?? "");
-  const n = Number(String(orderNumber ?? "").replace(/\D/g, ""));
+  const digits = String(orderNumber ?? "").replace(/\D/g, "");
+  const n = Number(digits);
   if (phone.length !== 11 || !n) return { ok: false, error: "Укажите телефон и номер заказа" };
-  if (await smsEnabled()) return { ok: false, error: "Войдите по коду из SMS" };
+  const proCode = digits.length === 6; // код мастера Katy PRO — 6 цифр, номер заказа — 4
+  if (!proCode && (await smsEnabled())) return { ok: false, error: "Войдите по коду из SMS" };
   // не больше 5 неудачных попыток в час на один номер, чтобы номер заказа нельзя было подобрать
   const now = Date.now();
   const res = await updateDb((db) => {
@@ -58,7 +60,9 @@ export async function loginByOrder(rawPhone: string, orderNumber: string): Promi
     const key = `order:${phone}`;
     let rec = db.loginCodes.find((c) => c.phone === key);
     if (rec && rec.tries >= 5 && new Date(rec.expires).getTime() > now) return "blocked" as const;
-    const found = db.orders.some((o) => o.number === n && normPhone(o.customer.phone) === phone);
+    const found = proCode
+      ? (db.pros ?? []).some((p) => p.phone === phone && p.status === "approved" && p.code === digits)
+      : db.orders.some((o) => o.number === n && normPhone(o.customer.phone) === phone);
     if (found) { db.loginCodes = db.loginCodes.filter((c) => c !== rec); return "ok" as const; }
     if (!rec) db.loginCodes.push((rec = { phone: key, hash: "", expires: "", tries: 0, sentAt: [] }));
     rec.tries++;
@@ -66,7 +70,7 @@ export async function loginByOrder(rawPhone: string, orderNumber: string): Promi
     return "no" as const;
   });
   if (res === "blocked") return { ok: false, error: "Слишком много попыток. Попробуйте через час или позвоните нам." };
-  if (res === "no") return { ok: false, error: "Заказ с таким номером и телефоном не найден" };
+  if (res === "no") return { ok: false, error: proCode ? "Код мастера не подходит к этому телефону" : "Заказ с таким номером и телефоном не найден" };
   await startSession(phone);
   revalidatePath("/account");
   return { ok: true };

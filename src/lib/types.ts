@@ -158,6 +158,8 @@ export type OrderItem = {
   qty: number;
   /** пожелание к сертификату или подарку */
   note?: string;
+  /** куплено по цене Katy PRO */
+  pro?: boolean;
 };
 
 export type Order = {
@@ -176,6 +178,8 @@ export type Order = {
   promos?: { title: string; amount: number; gift?: string }[];
   /** накопительная скидка клиента, применённая к заказу, % */
   loyaltyPercent?: number;
+  /** заказ мастера Katy PRO: его скидка на проф. товары, % */
+  proDiscount?: number;
   /** баллы Клуба Katy, начисленные за заказ */
   pointsEarned?: number;
   gift: string;
@@ -193,6 +197,8 @@ export type Settings = {
   deliveryPrice: number;
   announcement: string; // бегущая строка сверху
   giftText: string;
+  /** Katy PRO: разделы, на которые действуют цены для мастеров (по умолчанию ногти и волосы) */
+  proCategories?: string[];
 };
 
 export type Database = {
@@ -209,6 +215,8 @@ export type Database = {
   loginCodes?: LoginCode[];
   /** «Сообщить о поступлении»: кто ждёт товар */
   stockAlerts?: StockAlert[];
+  /** Katy PRO: мастера и салоны */
+  pros?: ProAccount[];
   /** адреса фото, которые не удалось перенести к нам (сайт бренда не отдал) */
   mirrorFailed?: string[];
   /** Версия демо-данных: при обновлении сайта новые разделы и товары добавляются в уже сохранённые данные */
@@ -252,4 +260,22 @@ export type StockAlert = {
   /** когда товар поступил и клиента оповестили (или надо позвонить) */
   notifiedAt?: string;
   smsSent?: boolean;
+};
+
+/** Katy PRO: мастер или салон */
+export type ProAccount = {
+  phone: string;
+  name: string;
+  kind: string;
+  salon?: string;
+  city?: string;
+  social?: string;
+  comment?: string;
+  status: "pending" | "approved" | "rejected";
+  /** скидка мастера на профессиональные товары, % */
+  discount: number;
+  /** код для входа в личный кабинет (сообщаете мастеру сами) */
+  code?: string;
+  createdAt: string;
+  approvedAt?: string;
 };

@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const db = await getDb();
   return (
     <div className="min-h-screen bg-[#f5f3ef] lg:flex">
-      <AdminNav newOrders={db.orders.filter((o) => o.status === "new").length} arrived={(db.stockAlerts ?? []).filter((a) => a.notifiedAt && !a.smsSent).length} />
+      <AdminNav newOrders={db.orders.filter((o) => o.status === "new").length} arrived={(db.stockAlerts ?? []).filter((a) => a.notifiedAt && !a.smsSent).length} proRequests={(db.pros ?? []).filter((p) => p.status === "pending").length} />
       <div className="min-w-0 flex-1">
         <div className="flex justify-end px-6 pt-4">
           <form action={logout}><button className="text-xs text-ink-soft underline">Выйти</button></form>

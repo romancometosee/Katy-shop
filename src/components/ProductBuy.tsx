@@ -6,13 +6,16 @@ import { GiftIcon, HeartIcon, MinusIcon, PlusIcon, ShieldIcon, TruckIcon } from 
 import { rub } from "@/lib/format";
 import type { ProductView } from "@/lib/catalog";
 
-export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: ProductView; giftText: string; freeDeliveryFrom: number }) {
+export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: ProductView; giftText: string; freeDeliveryFrom: number; pro?: { discount: number; prices: Record<string, number> } }) {
   const { add, favorites, toggleFavorite } = useCart();
   const preferred = p.variants[Math.floor((p.variants.length - 1) / 2)];
   const firstAvailable = preferred?.stock > 0 ? preferred : p.variants.find((v) => v.stock > 0) ?? p.variants[0];
   const [vid, setVid] = useState(firstAvailable?.id);
   const [qty, setQty] = useState(1);
-  const v = p.variants.find((x) => x.id === vid) ?? p.variants[0];
+  const v0 = p.variants.find((x) => x.id === vid) ?? p.variants[0];
+  // мастер Katy PRO видит свою цену; обычный покупатель — обычную
+  const proP = pro?.prices[v0.id];
+  const v = proP !== undefined && proP < v0.price ? { ...v0, price: proP, oldPrice: v0.oldPrice ?? v0.price } : v0;
   const fav = favorites.includes(p.id);
   // на телефоне: когда кнопка «Добавить в корзину» уехала вверх, внизу экрана появляется закреплённая кнопка
   const buyRef = useRef<HTMLDivElement>(null);
@@ -40,7 +43,7 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: Produ
         {v.oldPrice && <span className="pb-1 text-lg text-ink-soft line-through">{rub(v.oldPrice)}</span>}
         {v.oldPrice && <span className="mb-1.5 rounded-full bg-rose px-2.5 py-0.5 text-xs font-bold text-white">−{Math.round((1 - v.price / v.oldPrice) * 100)}%</span>}
       </div>
-      {p.promoTitle && <p className="mt-1 text-sm font-semibold text-rose">Акция «{p.promoTitle}»</p>}
+      {proP !== undefined ? <p className="mt-1 text-sm font-semibold text-[#b8935a]">Ваша цена мастера Katy PRO</p> : p.promoTitle && <p className="mt-1 text-sm font-semibold text-rose">Акция «{p.promoTitle}»</p>}
 
       {p.variants.length > 1 && (
         <div className="mt-6">
@@ -54,7 +57,7 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom }: { p: Produ
                 className={`rounded-2xl border px-4 py-3 text-left text-sm transition disabled:opacity-40 ${x.id === v.id ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink/40"}`}
               >
                 <span className="block font-semibold">{x.label}</span>
-                <span className={`text-xs ${x.id === v.id ? "text-white/70" : "text-ink-soft"}`}>{x.stock > 0 ? rub(x.price) : "нет в наличии"}</span>
+                <span className={`text-xs ${x.id === v.id ? "text-white/70" : "text-ink-soft"}`}>{x.stock > 0 ? rub(pro?.prices[x.id] ?? x.price) : "нет в наличии"}</span>
               </button>
             ))}
           </div>

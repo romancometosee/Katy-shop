@@ -5,14 +5,24 @@ import { useCart } from "./CartProvider";
 import ProductImage from "./ProductImage";
 import { GiftIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import { rub } from "@/lib/format";
-import { checkPromoCode, loyaltyForPhone, placeOrder } from "@/lib/actions";
+import { checkPromoCode, loyaltyForPhone, placeOrder, proPricesAction } from "@/lib/actions";
 import PromoHints from "./PromoHints";
 import { useCartQuote } from "./useCartQuote";
 
 type Props = { freeDeliveryFrom: number; deliveryPrice: number; giftText: string; mode: "cart" | "checkout" };
 
 export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mode }: Props) {
-  const { lines, subtotal, setQty, remove, clear } = useCart();
+  const { lines: cartLines, setQty, remove, clear } = useCart();
+  // Katy PRO: для вошедшего мастера цены проф. товаров — его собственные (сервер посчитает так же)
+  const [pro, setPro] = useState<{ discount: number; prices: Record<string, number> } | null>(null);
+  const proKey = cartLines.map((l) => l.variantId).join("|");
+  useEffect(() => {
+    proPricesAction(cartLines.map((l) => ({ productId: l.productId, variantId: l.variantId }))).then(setPro).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proKey]);
+  const lines = pro ? cartLines.map((l) => (pro.prices[l.variantId] !== undefined ? { ...l, price: pro.prices[l.variantId], pro: true } : l)) : cartLines;
+  const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
+  const proItems = pro ? cartLines.filter((l) => pro.prices[l.variantId] !== undefined).length : 0;
   const [promo, setPromo] = useState("");
   const [applied, setApplied] = useState<{ code: string; percent: number } | null>(null);
   const [promoError, setPromoError] = useState("");
@@ -30,9 +40,9 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
     return () => clearTimeout(t);
   }, [phone]);
 
-  const quote = useCartQuote(lines);
+  const quote = useCartQuote(lines.filter((l) => !("pro" in l)));
   // база для скидок: товары без сертификатов, после акций корзины
-  const goodsSum = lines.filter((l) => l.productId !== "gift-card" && l.productId !== "gift-box").reduce((s, l) => s + l.price * l.qty, 0);
+  const goodsSum = lines.filter((l) => l.productId !== "gift-card" && l.productId !== "gift-box" && !("pro" in l)).reduce((s, l) => s + l.price * l.qty, 0);
   const base = Math.max(0, goodsSum - quote.total);
   // накопительная скидка и промокод не суммируются — действует бо́льшая
   const useLoyalty = loyalty > 0 && loyalty >= (applied?.percent ?? 0);
@@ -90,6 +100,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
       <p className="h-display text-2xl">Ваш заказ</p>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between"><span>Товары</span><span>{rub(subtotal)}</span></div>
+        {proItems > 0 && <div className="text-[#b8935a]">Цены мастера Katy PRO (−{pro!.discount}%) уже в ценах товаров</div>}
         {quote.discounts.map((d) => <div key={d.promoId} className="flex justify-between gap-3 text-rose"><span>{d.title}</span><span className="shrink-0">−{rub(d.amount)}</span></div>)}
         {loyaltyDiscount > 0 && <div className="flex justify-between text-rose"><span>Накопительная скидка {loyalty}%</span><span>−{rub(loyaltyDiscount)}</span></div>}
         {codeDiscount > 0 && <div className="flex justify-between text-rose"><span>Промокод {applied?.code}</span><span>−{rub(codeDiscount)}</span></div>}
