@@ -166,8 +166,35 @@ export function queryStems(q: string) {
     .map((w) => (w.length > 5 ? w.slice(0, w.length - 2) : w));
 }
 
+// ---------- Поиск с опечатками и «как слышится»: шанель = chanel = shanel, ланком = lancome ----------
+const CYR: Record<string, string> = { а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ж: "zh", з: "z", и: "i", й: "i", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "h", ц: "ts", ч: "ch", ш: "sh", щ: "sh", ъ: "", ы: "i", ь: "", э: "e", ю: "yu", я: "ya" };
+/** Звуковой ключ слова: одинаковый для русского и латинского написания и для частых опечаток */
+export function soundKey(w: string) {
+  let k = w.toLowerCase().replace(/ё/g, "е").replace(/[а-я]/g, (ch) => CYR[ch] ?? ch);
+  k = k
+    .replace(/gu(?=[eiy])/g, "g").replace(/ch/g, "sh").replace(/ph/g, "f").replace(/w/g, "v").replace(/qu/g, "k").replace(/ck/g, "k")
+    .replace(/c(?=[eiy])/g, "s").replace(/c/g, "k").replace(/x/g, "ks").replace(/z/g, "s").replace(/y/g, "i")
+    .replace(/au|eau/g, "o").replace(/ai|ei/g, "e").replace(/ou/g, "u").replace(/(?<=[a-z])h/g, "")
+    .replace(/([a-z])\1+/g, "$1");
+  return k.length > 4 ? k.replace(/[e]$/, "") : k;
+}
+function near(a: string, b: string) {
+  // расстояние Левенштейна не больше 1 (одна лишняя/пропущенная/неверная буква)
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0, j = 0, diff = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++diff > 1) return false;
+    if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+  }
+  return diff + (a.length - i) + (b.length - j) <= 1;
+}
+function fuzzyHit(qk: string, words: string[]) {
+  return words.some((wk) => wk === qk || (qk.length >= 4 && wk.startsWith(qk)) || (qk.length >= 5 && near(qk, wk.slice(0, qk.length + 1)) ) || (qk.length >= 5 && near(qk, wk)));
+}
+
 export function searchProducts(db: Database, f: Filters): ProductView[] {
-  const q = f.q?.trim().toLowerCase();
+  const q = f.q?.trim().toLowerCase().normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
   let list = db.products.filter((p) => p.isActive);
   if (f.ids) list = list.filter((p) => f.ids!.includes(p.id));
   if (f.category) list = list.filter((p) => p.categoryId === f.category);
@@ -182,7 +209,8 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
       const brand = db.brands.find((b) => b.id === p.brandId)?.name ?? "";
       const notes = p.notes ? [...p.notes.top, ...p.notes.heart, ...p.notes.base].join(" ") : "";
       const cat = db.categories.find((c) => c.id === (p.subcategoryId ?? p.categoryId))?.name ?? "";
-      return [p.name, brand, cat, p.shortDescription, p.family ?? "", notes, p.tags.join(" ")].join(" ").toLowerCase().replace(/ё/g, "е");
+      const sex = p.gender === "men" ? "мужской мужские мужчине для мужчин" : p.gender === "women" ? "женский женские женщине для женщин" : p.gender === "unisex" ? "унисекс" : "";
+      return [p.name, brand, cat, p.shortDescription, p.family ?? "", notes, p.tags.join(" "), sex].join(" ").toLowerCase().replace(/ё/g, "е").normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
     };
     const exact = list.filter((p) => text(p).includes(q.replace(/ё/g, "е")));
     if (exact.length) list = exact;
@@ -195,7 +223,17 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
         return { p, s: stems.filter((w) => t.includes(w)).length };
       });
       const best = Math.max(0, ...scored.map((x) => x.s));
-      list = best > 0 ? scored.filter((x) => x.s === best).map((x) => x.p) : [];
+      if (best > 0) list = scored.filter((x) => x.s === best).map((x) => x.p);
+      else {
+        // ничего не нашли — пробуем «как слышится» и с одной опечаткой: shanel, диор, ланком, керастаз
+        const qks = q.split(/[^a-zа-яё0-9]+/i).filter((w) => w.length > 2 && !STOP.has(w)).map(soundKey);
+        const fz = list.map((p) => {
+          const words = text(p).split(/[^a-zа-я0-9]+/i).filter((w) => w.length > 2).map(soundKey);
+          return { p, s: qks.filter((k) => fuzzyHit(k, words)).length };
+        });
+        const fb = Math.max(0, ...fz.map((x) => x.s));
+        list = fb > 0 ? fz.filter((x) => x.s === fb).map((x) => x.p) : [];
+      }
     }
   }
   let views = list.map((p) => toView(db, p));

@@ -103,13 +103,16 @@ export default function FilterPanel({
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <div className="absolute inset-y-0 right-0 w-[88%] max-w-sm overflow-y-auto bg-cream p-5">
+          <div className="absolute inset-y-0 right-0 w-[88%] max-w-sm overflow-y-auto bg-cream px-5 pt-5">
             <div className="mb-3 flex items-center justify-between">
               <p className="h-display text-2xl">Фильтры</p>
               <button onClick={() => setMobileOpen(false)} aria-label="Закрыть"><CloseIcon className="h-6 w-6" /></button>
             </div>
             {panel}
-            <button onClick={() => setMobileOpen(false)} className="btn-dark mt-6 w-full">Показать</button>
+            {/* кнопка всегда видна внизу, не нужно листать весь список фильтров */}
+            <div className="sticky bottom-0 -mx-5 mt-6 border-t border-line bg-cream px-5 py-4">
+              <button onClick={() => setMobileOpen(false)} className="btn-dark w-full">Показать товары</button>
+            </div>
           </div>
         </div>
       )}

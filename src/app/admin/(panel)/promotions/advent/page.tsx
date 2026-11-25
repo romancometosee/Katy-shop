@@ -33,10 +33,10 @@ export default async function AdventAdmin() {
         </datalist>
         <div className="grid gap-x-6 gap-y-2 lg:grid-cols-2">
           {days.map(({ day, promo, product }) => (
-            <div key={day} className="flex items-center gap-2 border-b border-line py-2 text-sm">
+            <div key={day} className="flex min-w-0 items-center gap-2 border-b border-line py-2 text-sm">
               <span className="h-display w-16 shrink-0 text-xl" style={{ color: ADVENT_COLOR }}>{day} дек</span>
               <div className="min-w-0 flex-1">
-                <input name={`slug${day}`} list="advent-products" defaultValue={product?.slug ?? ""} placeholder="Начните вводить товар" className="input py-1.5" />
+                <input name={`slug${day}`} list="advent-products" defaultValue={product?.slug ?? ""} placeholder="Начните вводить товар" className="input w-full min-w-0 py-1.5" />
                 {product && <p className="mt-0.5 truncate text-xs text-ink-soft">{brand(product.brandId)} {product.name}</p>}
               </div>
               <label className="flex shrink-0 items-center gap-1 text-xs text-ink-soft">−<input name={`percent${day}`} defaultValue={promo?.discountPercent ?? 20} className="input w-14 py-1.5" />%</label>

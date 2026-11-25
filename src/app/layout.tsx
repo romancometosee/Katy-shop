@@ -13,6 +13,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru" className={`${cormorant.variable} ${manrope.variable}`}>
+      <head>
+        {/* если картинка не загрузилась (сайт бренда недоступен) — прячем значок «сломанной картинки» */}
+        <script dangerouslySetInnerHTML={{ __html: `document.addEventListener("error",function(e){var t=e.target;if(t&&t.tagName==="IMG"&&!t.dataset.keep)t.style.visibility="hidden"},true)` }} />
+      </head>
       <body className="font-sans">{children}</body>
     </html>
   );

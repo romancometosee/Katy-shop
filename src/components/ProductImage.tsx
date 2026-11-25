@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
 import type { ProductArt as Art } from "@/lib/types";
 
 export default function ProductImage({
@@ -11,12 +13,17 @@ export default function ProductImage({
   label?: string;
   className?: string;
 }) {
-  if (images[0]) {
+  // если фото не загрузилось (сайт бренда недоступен) — показываем аккуратную заглушку, а не пустой квадрат
+  const [broken, setBroken] = useState(false);
+  const ref = useRef<HTMLImageElement>(null);
+  // ошибка могла случиться ещё до загрузки скриптов — проверяем после запуска
+  useEffect(() => { const i = ref.current; if (i && i.complete && i.naturalWidth === 0) setBroken(true); }, []);
+  if (images[0] && !broken) {
     // eslint-disable-next-line @next/next/no-img-element
     return (
       <div className="h-full w-full bg-white">
         {/* фото товара на белом фоне; светло-серый фон некоторых снимков осветляем до белого */}
-        <img src={images[0]} alt={label || ""} loading="lazy" referrerPolicy="no-referrer" className={`h-full w-full object-contain p-[6%] brightness-[1.08] contrast-[1.03] ${className}`} />
+        <img ref={ref} src={images[0]} alt={label || ""} loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} className={`h-full w-full object-contain p-[6%] brightness-[1.08] contrast-[1.03] ${className}`} />
       </div>
     );
   }
