@@ -31,7 +31,7 @@ export default function TitleScreen({ categories, brands }: { categories: Catego
       <div className="pointer-events-none absolute -right-24 top-24 h-[24rem] w-[24rem] rounded-full bg-[#f3e3c3] opacity-60 blur-3xl katy-drift [animation-delay:-7s]" />
 
       <div className="container-x relative grid items-center gap-10 pb-10 pt-8 lg:grid-cols-[1fr_1.15fr] lg:gap-14 lg:pb-16 lg:pt-14">
-        <div className="animate-fade-up">
+        <div className="min-w-0 animate-fade-up">
           <p className="text-xs font-semibold uppercase tracking-[.28em] text-rose">Парфюмерия · уход · макияж · волосы · ногти</p>
           <h1 className="h-display mt-5 text-[clamp(44px,6.4vw,92px)] leading-[0.98]">
             Вся красота <br className="hidden sm:block" />

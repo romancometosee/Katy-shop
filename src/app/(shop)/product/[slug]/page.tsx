@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { abs } from "@/lib/site";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ProductBuy from "@/components/ProductBuy";
 import ProductTabs from "@/components/ProductTabs";
@@ -22,7 +23,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const p = db.products.find((x) => x.slug === slug);
   if (!p) return {};
   const brand = db.brands.find((b) => b.id === p.brandId)?.name;
-  return { title: `${brand} ${p.name}`, description: p.shortDescription };
+  const v = toView(db, p);
+  const title = `${brand} ${p.name}`;
+  const description = `${p.shortDescription} Цена от ${v.price.toLocaleString("ru-RU")} ₽. Оригинал, подарок в каждом заказе.`;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/product/${p.slug}` },
+    openGraph: { type: "website", title: `${title} — ${v.price.toLocaleString("ru-RU")} ₽`, description: p.shortDescription, url: `/product/${p.slug}`, images: p.images[0] ? [{ url: abs(p.images[0]) }] : undefined },
+  };
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -46,8 +55,29 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ["Страна бренда", db.brands.find((b) => b.id === product.brandId)?.country ?? ""],
   ];
 
+  // данные для Яндекса и Google: цена, наличие, рейтинг — показываются прямо в поиске
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${p.brandName} ${p.name}`,
+    description: product.shortDescription,
+    brand: { "@type": "Brand", name: p.brandName },
+    image: p.images.map(abs),
+    sku: product.id,
+    ...(reviews.length ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: reviews.length } } : {}),
+    offers: p.variants.map((v) => ({
+      "@type": "Offer",
+      name: v.label,
+      price: v.price,
+      priceCurrency: "RUB",
+      availability: v.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      url: abs(`/product/${p.slug}`),
+    })),
+  };
+
   return (
     <div className="container-x pt-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, "\\u003c") }} />
       <Breadcrumbs
         items={[
           ...(cat ? [{ name: cat.name, href: `/catalog/${cat.slug}` }] : []),
