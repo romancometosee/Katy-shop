@@ -4,7 +4,7 @@ import AccountLogin from "@/components/AccountLogin";
 import { getDb } from "@/lib/db";
 import { currentCustomer, smsEnabled } from "@/lib/customer";
 import { logout } from "@/lib/account-actions";
-import { CLUB_LEVELS, POINTS_KIND, levelFor, nextLevel, normPhone, yearSpend } from "@/lib/club";
+import { DISCOUNT_LEVELS, discountLevel, normPhone, totalSpend } from "@/lib/club";
 import { dateRu, rub } from "@/lib/format";
 
 export const metadata = { title: "Личный кабинет", robots: { index: false } };
@@ -30,9 +30,11 @@ export default async function AccountPage() {
   const db = await getDb();
   const member = (db.members ?? []).find((m) => m.phone === phone);
   const orders = db.orders.filter((o) => normPhone(o.customer.phone) === phone);
-  const spend = yearSpend(db.orders, phone);
-  const level = levelFor(spend);
-  const next = nextLevel(spend);
+  const spend = totalSpend(db, phone);
+  const level = discountLevel(spend);
+  const next = level.next;
+  const maxPercent = DISCOUNT_LEVELS[DISCOUNT_LEVELS.length - 1].percent;
+  const storeBuys = (member?.history ?? []).filter((h) => h.kind === "storeSpend");
   const name = member?.name ?? orders[0]?.customer.name ?? "";
 
   return (
@@ -48,43 +50,44 @@ export default async function AccountPage() {
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[380px_1fr]">
-        {/* карта клуба и баллы */}
+        {/* карта клуба: накопительная скидка */}
         <div className="space-y-6">
-          {member ? (
-            <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[#1c1917] to-[#3a2e2a] p-7 text-[#e8c98f] shadow-xl">
-              <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-[#e8c98f]/20 blur-2xl" />
-              <p className="h-display text-2xl tracking-[.3em]">KATY</p>
-              <p className="text-[10px] uppercase tracking-[.35em] opacity-70">{level.name}</p>
-              <p className="h-display mt-8 text-6xl leading-none">{member.points.toLocaleString("ru-RU")}</p>
-              <p className="text-sm opacity-80">баллов · 1 балл = 1 ₽</p>
-              <p className="mt-4 text-xs opacity-70">Ваш уровень: {level.percent}% баллами с каждой покупки</p>
-              {next && (
-                <div className="mt-3">
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-[#e8c98f]" style={{ width: `${Math.min(100, (spend / next.from) * 100)}%` }} /></div>
-                  <p className="mt-1.5 text-xs opacity-70">До уровня {next.name} ({next.percent}%) осталось {rub(next.from - spend)}</p>
-                </div>
-              )}
-            </div>
-          ) : (
+          <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[#1c1917] to-[#3a2e2a] p-7 text-[#e8c98f] shadow-xl">
+            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-[#e8c98f]/20 blur-2xl" />
+            <p className="h-display text-2xl tracking-[.3em]">KATY</p>
+            <p className="text-[10px] uppercase tracking-[.35em] opacity-70">{member ? "club card" : "накопительная скидка"}</p>
+            <p className="h-display mt-8 text-6xl leading-none">{level.percent}%</p>
+            <p className="text-sm opacity-80">ваша накопительная скидка</p>
+            <p className="mt-4 text-xs opacity-70">Сумма покупок: {rub(spend)}</p>
+            {next ? (
+              <div className="mt-3">
+                <div className="h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-[#e8c98f]" style={{ width: `${Math.min(100, (spend / next.from) * 100)}%` }} /></div>
+                <p className="mt-1.5 text-xs opacity-70">До скидки {next.percent}% осталось {rub(next.from - spend)}</p>
+              </div>
+            ) : (
+              <p className="mt-3 text-xs opacity-70">У вас максимальная скидка {maxPercent}%</p>
+            )}
+          </div>
+          <p className="px-1 text-xs text-ink-soft">Скидка считается сама при оформлении заказа на этот номер телефона и растёт с каждой покупкой — в магазинах и на сайте.</p>
+          {!member && (
             <div className="rounded-[1.75rem] bg-sand p-7">
-              <p className="h-display text-2xl">Вы ещё не в Клубе Katy</p>
-              <p className="mt-2 text-sm text-ink-soft">Вступите бесплатно: баллы за каждую покупку (до {CLUB_LEVELS[CLUB_LEVELS.length - 1].percent}%) и подарок на день рождения.</p>
+              <p className="h-display text-2xl">Вступите в Клуб Katy</p>
+              <p className="mt-2 text-sm text-ink-soft">Бесплатно: подарок на день рождения и ранний доступ к закрытым акциям.</p>
               <Link href="/club" className="btn-dark mt-4">Вступить в клуб</Link>
             </div>
           )}
 
-          {member?.history?.length ? (
+          {storeBuys.length ? (
             <div className="card p-6">
-              <p className="h-display text-2xl">История баллов</p>
+              <p className="h-display text-2xl">Покупки в магазинах</p>
               <ul className="mt-3 divide-y divide-line text-sm">
-                {member.history.slice(0, 30).map((h, i) => (
+                {storeBuys.slice(0, 30).map((h, i) => (
                   <li key={i} className="flex items-center justify-between gap-3 py-2.5">
                     <span>
-                      {POINTS_KIND[h.kind] ?? h.kind}{h.orderNumber ? ` №${h.orderNumber}` : ""}
-                      {h.note && <span className="block text-xs text-ink-soft">{h.note}</span>}
+                      {h.note || "Покупка в магазине"}
                       <span className="block text-xs text-ink-soft">{dateRu(h.at)}</span>
                     </span>
-                    <b className={h.points >= 0 ? "text-emerald-700" : "text-rose"}>{h.points >= 0 ? "+" : ""}{h.points}</b>
+                    <b>{rub(h.amount ?? 0)}</b>
                   </li>
                 ))}
               </ul>
@@ -96,7 +99,7 @@ export default async function AccountPage() {
         <div>
           <div className="mb-4 flex items-baseline justify-between">
             <p className="h-display text-3xl">Мои заказы</p>
-            <p className="text-sm text-ink-soft">{orders.length ? `Покупок за год: ${rub(spend)}` : ""}</p>
+            <p className="text-sm text-ink-soft">{orders.length ? `Всего заказов: ${orders.length}` : ""}</p>
           </div>
           {orders.length === 0 && (
             <div className="card p-8 text-center text-ink-soft">
@@ -126,6 +129,7 @@ export default async function AccountPage() {
                 <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-soft">
                   {o.discount > 0 && <span>Скидка: −{rub(o.discount)}</span>}
                   <span>Доставка: {o.deliveryPrice ? rub(o.deliveryPrice) : "бесплатно"}</span>
+                  {o.loyaltyPercent ? <span className="text-emerald-700">Накопительная скидка {o.loyaltyPercent}%</span> : null}
                   {o.pointsEarned ? <span className="text-emerald-700">Начислено баллов: +{o.pointsEarned}</span> : null}
                 </div>
               </details>

@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useCart } from "./CartProvider";
 import ProductImage from "./ProductImage";
 import { GiftIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import { rub } from "@/lib/format";
-import { checkPromoCode, placeOrder } from "@/lib/actions";
+import { checkPromoCode, loyaltyForPhone, placeOrder } from "@/lib/actions";
 import PromoHints from "./PromoHints";
 import { useCartQuote } from "./useCartQuote";
 
@@ -21,9 +21,24 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
   const [done, setDone] = useState<number | null>(null);
   const [pending, start] = useTransition();
 
+  const [phone, setPhone] = useState("");
+  const [loyalty, setLoyalty] = useState(0);
+  useEffect(() => {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 10) { setLoyalty(0); return; }
+    const t = setTimeout(() => loyaltyForPhone(phone).then((r) => setLoyalty(r.percent)).catch(() => {}), 400);
+    return () => clearTimeout(t);
+  }, [phone]);
+
   const quote = useCartQuote(lines);
-  const codeDiscount = applied ? Math.round(((subtotal - quote.total) * applied.percent) / 100) : 0;
-  const discount = quote.total + codeDiscount;
+  // база для скидок: товары без сертификатов, после акций корзины
+  const goodsSum = lines.filter((l) => l.productId !== "gift-card" && l.productId !== "gift-box").reduce((s, l) => s + l.price * l.qty, 0);
+  const base = Math.max(0, goodsSum - quote.total);
+  // накопительная скидка и промокод не суммируются — действует бо́льшая
+  const useLoyalty = loyalty > 0 && loyalty >= (applied?.percent ?? 0);
+  const loyaltyDiscount = useLoyalty ? Math.round((base * loyalty) / 100) : 0;
+  const codeDiscount = applied && !useLoyalty ? Math.round((base * applied.percent) / 100) : 0;
+  const discount = quote.total + loyaltyDiscount + codeDiscount;
   const ship = delivery === "pickup" || quote.freeDelivery || subtotal - discount >= freeDeliveryFrom ? 0 : deliveryPrice;
   const total = subtotal - discount + ship;
 
@@ -35,7 +50,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
         <p className="mt-3 text-ink-soft">Номер заказа <b className="text-ink">№{done}</b>. Мы свяжемся с вами в ближайшее время, чтобы подтвердить детали. В посылку положим подарок: {giftText.toLowerCase()}.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link href="/" className="btn-dark">На главную</Link>
-          <Link href="/account" className="btn-light">Мои заказы и баллы</Link>
+          <Link href="/account" className="btn-light">Мои заказы и скидка</Link>
         </div>
       </div>
     );
@@ -76,6 +91,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
       <div className="space-y-2 text-sm">
         <div className="flex justify-between"><span>Товары</span><span>{rub(subtotal)}</span></div>
         {quote.discounts.map((d) => <div key={d.promoId} className="flex justify-between gap-3 text-rose"><span>{d.title}</span><span className="shrink-0">−{rub(d.amount)}</span></div>)}
+        {loyaltyDiscount > 0 && <div className="flex justify-between text-rose"><span>Накопительная скидка {loyalty}%</span><span>−{rub(loyaltyDiscount)}</span></div>}
         {codeDiscount > 0 && <div className="flex justify-between text-rose"><span>Промокод {applied?.code}</span><span>−{rub(codeDiscount)}</span></div>}
         {mode === "checkout" && <div className="flex justify-between"><span>Доставка</span><span>{ship ? rub(ship) : "бесплатно"}</span></div>}
         <div className="flex items-center gap-2 text-rose"><GiftIcon className="h-4 w-4" /> Подарок: {giftText.toLowerCase()}</div>
@@ -86,7 +102,9 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
         <button type="button" onClick={applyPromo} className="btn-light px-4 py-2.5">ОК</button>
       </div>
       {promoError && <p className="text-xs text-rose">{promoError}</p>}
-      {applied && <p className="text-xs text-emerald-700">Промокод применён: −{applied.percent}%</p>}
+      {applied && !useLoyalty && <p className="text-xs text-emerald-700">Промокод применён: −{applied.percent}%</p>}
+      {applied && useLoyalty && <p className="text-xs text-ink-soft">Ваша накопительная скидка {loyalty}% выгоднее промокода — применили её.</p>}
+      {mode === "cart" && <p className="text-xs text-ink-soft">Постоянным покупателям накопительная скидка посчитается сама при оформлении по номеру телефона.</p>}
       <div className="flex justify-between border-t border-line pt-4 text-xl font-semibold"><span>Итого</span><span>{rub(total)}</span></div>
       {mode === "cart" ? (
         <Link href="/checkout" className="btn-dark w-full">Оформить заказ</Link>
@@ -127,7 +145,8 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
             <p className="h-display mb-4 text-2xl">Контакты</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <input name="name" required placeholder="Имя *" className="input" />
-              <input name="phone" required placeholder="Телефон *" className="input" inputMode="tel" />
+              <input name="phone" required placeholder="Телефон *" className="input" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              {loyalty > 0 && <p className="text-sm text-emerald-700 sm:col-span-2">Ваша накопительная скидка {loyalty}% — уже учтена в заказе.</p>}
               <input name="email" type="email" placeholder="E-mail" className="input sm:col-span-2" />
             </div>
           </div>

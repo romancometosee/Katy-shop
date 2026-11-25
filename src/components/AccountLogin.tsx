@@ -17,7 +17,7 @@ export default function AccountLogin({ sms }: { sms: boolean }) {
   return (
     <div className="mx-auto max-w-md rounded-[1.75rem] bg-white p-6 shadow-sm sm:p-8">
       <p className="h-display text-3xl">Вход в личный кабинет</p>
-      <p className="mt-2 text-sm text-ink-soft">История покупок, баллы Клуба Katy и статус заказов — по вашему номеру телефона.</p>
+      <p className="mt-2 text-sm text-ink-soft">История покупок, ваша накопительная скидка и статус заказов — по вашему номеру телефона.</p>
       <form
         className="mt-6 space-y-3"
         onSubmit={(e) => {

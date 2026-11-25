@@ -311,6 +311,27 @@ export async function adjustPoints(fd: FormData) {
   done(`/admin/club/${phone}`);
 }
 
+/** Накопительная скидка: покупка в магазине (или исправление суммы) — увеличивает сумму покупок клиента */
+export async function addStoreSpend(fd: FormData) {
+  await requireAdmin();
+  const phone = str(fd, "phone");
+  const amount = Math.round(num(fd, "amount"));
+  const note = str(fd, "note").slice(0, 120);
+  if (!amount || phone.length !== 11) return;
+  await updateDb((db) => {
+    db.members ??= [];
+    let m = db.members.find((x) => x.phone === phone);
+    if (!m) {
+      const o = db.orders.find((x) => x.customer.phone.replace(/\D/g, "").endsWith(phone.slice(1)));
+      m = { phone, name: o?.customer.name || "Клиент магазина", points: 0, createdAt: new Date().toISOString() };
+      db.members.unshift(m);
+    }
+    m.storeSpend = Math.max(0, (m.storeSpend ?? 0) + amount);
+    (m.history ??= []).unshift({ at: new Date().toISOString(), kind: "storeSpend", points: 0, amount, note: note || undefined });
+  });
+  done(`/admin/club/${phone}`);
+}
+
 export async function deletePromotion(fd: FormData) {
   await requireAdmin();
   const id = str(fd, "id");

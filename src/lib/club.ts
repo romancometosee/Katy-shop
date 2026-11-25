@@ -2,6 +2,38 @@
 // ВАЖНО: уровни и проценты — пример. В магазинах уже есть накопительная система
 // по номеру телефона; когда будет доступ к ней, подставим её правила и баланс.
 
+/**
+ * НАКОПИТЕЛЬНАЯ СКИДКА — так сейчас работает система в магазинах (Роман, 25.11.2026):
+ * чем больше сумма всех покупок по номеру телефона, тем больше постоянная скидка в процентах.
+ * Баллы не начисляются и не списываются. Пороги и проценты ниже — ПРИМЕР, пока Роман не пришлёт настоящие.
+ */
+export const LOYALTY_MODE: "discount" | "points" = "discount";
+
+export const DISCOUNT_LEVELS = [
+  { name: "Katy", from: 0, percent: 0 },
+  { name: "Katy 3%", from: 5000, percent: 3 },
+  { name: "Katy 5%", from: 15000, percent: 5 },
+  { name: "Katy 7%", from: 30000, percent: 7 },
+  { name: "Katy 10%", from: 60000, percent: 10 },
+];
+
+/** Текущая скидка и следующий порог по сумме всех покупок */
+export function discountLevel(total: number) {
+  const cur = [...DISCOUNT_LEVELS].reverse().find((l) => total >= l.from) ?? DISCOUNT_LEVELS[0];
+  const next = DISCOUNT_LEVELS.find((l) => l.from > total);
+  return { ...cur, next };
+}
+
+/** Сумма всех покупок клиента: заказы на сайте (без доставки и сертификатов) + покупки в магазинах, внесённые вручную */
+export function totalSpend(db: { orders: { customer: { phone: string }; status: string; total: number; deliveryPrice: number; items: { productId: string; price: number; qty: number }[] }[]; members?: { phone: string; storeSpend?: number }[] }, phone: string) {
+  const site = db.orders
+    .filter((o) => normPhone(o.customer.phone) === phone && o.status !== "cancelled")
+    .reduce((s, o) => s + Math.max(0, o.total - o.deliveryPrice - o.items.filter((i) => i.productId === "gift-card").reduce((a, i) => a + i.price * i.qty, 0)), 0);
+  const store = db.members?.find((m) => m.phone === phone)?.storeSpend ?? 0;
+  return site + store;
+}
+
+// ---------- Баллы (сейчас выключены, LOYALTY_MODE = "discount"; оставлены на будущее) ----------
 export const CLUB_LEVELS = [
   { name: "Katy", from: 0, percent: 5, note: "сразу после вступления" },
   { name: "Katy Silver", from: 30000, percent: 7, note: "покупки от 30 000 ₽ за год" },
@@ -42,7 +74,7 @@ export function yearSpend(orders: { customer: { phone: string }; status: string;
   return orders.filter((o) => normPhone(o.customer.phone) === phone && o.status !== "cancelled" && new Date(o.createdAt).getTime() > yearAgo).reduce((s, o) => s + o.total, 0);
 }
 
-export const POINTS_KIND: Record<string, string> = { welcome: "Приветственные баллы", order: "За заказ", birthday: "Подарок на день рождения", manual: "Начислено магазином", store: "Покупка в магазине" };
+export const POINTS_KIND: Record<string, string> = { welcome: "Приветственные баллы", order: "За заказ", birthday: "Подарок на день рождения", manual: "Начислено магазином", store: "Покупка в магазине", storeSpend: "Покупка в магазине" };
 
 // ---------- Подарочные сертификаты ----------
 export const GIFT_AMOUNTS = [1000, 3000, 5000, 10000];

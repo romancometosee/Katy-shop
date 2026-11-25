@@ -174,6 +174,8 @@ export type Order = {
   promoCode?: string;
   /** скидки и подарки по акциям в корзине */
   promos?: { title: string; amount: number; gift?: string }[];
+  /** накопительная скидка клиента, применённая к заказу, % */
+  loyaltyPercent?: number;
   /** баллы Клуба Katy, начисленные за заказ */
   pointsEarned?: number;
   gift: string;
@@ -217,14 +219,18 @@ export type ClubMember = {
   email?: string;
   points: number;
   createdAt: string;
+  /** покупки в магазинах (пока касса не подключена — вносятся вручную в админке), ₽ */
+  storeSpend?: number;
   /** история баллов: начисления и списания */
   history?: PointsEntry[];
 };
 
 export type PointsEntry = {
   at: string;
-  kind: "welcome" | "order" | "birthday" | "manual" | "store";
+  kind: "welcome" | "order" | "birthday" | "manual" | "store" | "storeSpend";
   points: number; // + начислено, − списано
+  /** сумма покупки в магазине, ₽ (kind "storeSpend") */
+  amount?: number;
   orderNumber?: number;
   note?: string;
 };

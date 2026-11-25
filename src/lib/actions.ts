@@ -5,7 +5,7 @@ import { updateDb } from "./db";
 import { toView } from "./catalog";
 import type { Order } from "./types";
 import { quoteCart, type CartQuote } from "./promo";
-import { GIFT_BOX, GIFT_BOXES, WELCOME_BONUS, normPhone, parseGiftCard, pointsForOrder, yearSpend } from "./club";
+import { GIFT_BOX, GIFT_BOXES, LOYALTY_MODE, WELCOME_BONUS, discountLevel, normPhone, parseGiftCard, pointsForOrder, totalSpend, yearSpend } from "./club";
 
 export async function submitReview(fd: FormData) {
   const productId = String(fd.get("productId"));
@@ -86,20 +86,31 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
     const quote = quoteCart(db, items.filter((i) => i.productId !== "gift-card" && i.productId !== GIFT_BOX.id));
     let discount = quote.total;
     let promoCode: string | undefined;
+    // база для скидок: товары без сертификатов, после акций корзины
+    const goods = items.filter((i) => i.productId !== "gift-card" && i.productId !== GIFT_BOX.id).reduce((s, i) => s + i.price * i.qty, 0);
+    const base = Math.max(0, goods - quote.total);
+    // накопительная скидка по телефону; с промокодом не суммируется — берём бо́льшую
+    const loyaltyPercent = LOYALTY_MODE === "discount" ? discountLevel(totalSpend(db, normPhone(c.phone))).percent : 0;
+    let codePercent = 0;
     if (input.promoCode) {
       const pc = db.promoCodes.find((p) => p.isActive && p.code.toUpperCase() === input.promoCode!.trim().toUpperCase());
-      if (pc && subtotal >= pc.minTotal) {
-        discount += Math.round(((subtotal - quote.total) * pc.discountPercent) / 100);
-        promoCode = pc.code;
-      }
+      if (pc && subtotal >= pc.minTotal) { codePercent = pc.discountPercent; promoCode = pc.code; }
     }
-    const promos = [...quote.discounts.map((d) => ({ title: d.title, amount: d.amount })), ...quote.gifts.map((g) => ({ title: g.title, amount: 0, gift: g.text }))];
+    const usedLoyalty = loyaltyPercent > 0 && loyaltyPercent >= codePercent;
+    if (usedLoyalty) promoCode = undefined;
+    const extraPercent = usedLoyalty ? loyaltyPercent : codePercent;
+    discount += Math.round((base * extraPercent) / 100);
+    const promos = [
+      ...quote.discounts.map((d) => ({ title: d.title, amount: d.amount })),
+      ...(usedLoyalty ? [{ title: `Накопительная скидка ${loyaltyPercent}%`, amount: Math.round((base * loyaltyPercent) / 100) }] : []),
+      ...quote.gifts.map((g) => ({ title: g.title, amount: 0, gift: g.text })),
+    ];
     const deliveryPrice = input.delivery === "pickup" || quote.freeDelivery || subtotal - discount >= db.settings.freeDeliveryFrom ? 0 : db.settings.deliveryPrice;
     const number = 1000 + db.orders.length + 1;
     // Клуб Katy: баллы за заказ участнику с этим телефоном (правила — в club.ts, pointsForOrder)
     const member = (db.members ?? []).find((m) => m.phone === normPhone(c.phone));
     let pointsEarned = 0;
-    if (member) {
+    if (member && LOYALTY_MODE === "points") {
       // сертификаты баллами не облагаются — баллы начислятся, когда сертификатом оплатят товары
       const base = items.filter((i) => i.productId !== "gift-card").reduce((s, i) => s + i.price * i.qty, 0);
       pointsEarned = pointsForOrder({ goodsTotal: Math.max(0, base - discount), yearSpend: yearSpend(db.orders, member.phone) });
@@ -122,6 +133,7 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       promoCode,
       promos: promos.length ? promos : undefined,
       pointsEarned: pointsEarned || undefined,
+      loyaltyPercent: usedLoyalty ? loyaltyPercent : undefined,
       gift: db.settings.giftText,
       status: "new",
     });
@@ -131,7 +143,16 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
   return result;
 }
 
-export type JoinResult = { ok: true; points: number; already: boolean } | { ok: false; error: string };
+export type JoinResult = { ok: true; points: number; already: boolean; percent: number } | { ok: false; error: string };
+
+/** Накопительная скидка по номеру телефона — для корзины */
+export async function loyaltyForPhone(phone: string) {
+  if (LOYALTY_MODE !== "discount") return { percent: 0 };
+  const p = normPhone(phone ?? "");
+  if (p.length !== 11) return { percent: 0 };
+  const { getDb } = await import("./db");
+  return { percent: discountLevel(totalSpend(await getDb(), p)).percent };
+}
 
 /** Вступление в Клуб Katy */
 export async function joinClub(input: { name: string; phone: string; birthday?: string; email?: string; agree: boolean }): Promise<JoinResult> {
@@ -144,9 +165,9 @@ export async function joinClub(input: { name: string; phone: string; birthday?: 
   const res = await updateDb((db) => {
     db.members ??= [];
     const found = db.members.find((m) => m.phone === phone);
-    if (found) return { ok: true as const, points: found.points, already: true };
-    db.members.unshift({ phone, name, birthday, email: input.email?.trim().slice(0, 100) || undefined, points: WELCOME_BONUS, createdAt: new Date().toISOString(), history: [{ at: new Date().toISOString(), kind: "welcome", points: WELCOME_BONUS }] });
-    return { ok: true as const, points: WELCOME_BONUS, already: false };
+    if (found) return { ok: true as const, points: found.points, already: true, percent: discountLevel(totalSpend(db, phone)).percent };
+    db.members.unshift({ phone, name, birthday, email: input.email?.trim().slice(0, 100) || undefined, ...(LOYALTY_MODE === "points" ? { points: WELCOME_BONUS, history: [{ at: new Date().toISOString(), kind: "welcome" as const, points: WELCOME_BONUS }] } : { points: 0 }), createdAt: new Date().toISOString() });
+    return { ok: true as const, points: LOYALTY_MODE === "points" ? WELCOME_BONUS : 0, already: false, percent: discountLevel(totalSpend(db, phone)).percent };
   });
   revalidatePath("/admin/club");
   return res;

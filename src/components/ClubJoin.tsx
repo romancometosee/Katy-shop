@@ -11,7 +11,7 @@ export default function ClubJoin() {
       <div className="rounded-[1.75rem] bg-white p-8 text-center shadow-sm animate-fade-up">
         <p className="text-4xl">✦</p>
         <p className="h-display mt-3 text-3xl">{res.already ? "Вы уже в клубе!" : "Добро пожаловать в клуб!"}</p>
-        <p className="mt-2 text-ink-soft">{res.already ? `На вашем счёте ${res.points} баллов.` : `Мы начислили вам ${res.points} приветственных баллов.`} Баллы начисляются за заказы, оформленные на этот номер телефона.</p>
+        <p className="mt-2 text-ink-soft">{res.percent ? `Ваша накопительная скидка сейчас ${res.percent}%.` : "Скидка начнёт расти с первых покупок."} Она считается сама по этому номеру телефона — в магазинах и на сайте.</p>
       </div>
     );
   return (
@@ -37,7 +37,7 @@ export default function ClubJoin() {
         <input name="agree" type="checkbox" className="mt-0.5" required /> Согласен(на) с правилами клуба и обработкой персональных данных
       </label>
       {res && !res.ok && <p className="text-sm text-rose">{res.error}</p>}
-      <button disabled={pending} className="btn-dark w-full py-3.5 disabled:opacity-50">{pending ? "Минутку…" : "Вступить и получить баллы"}</button>
+      <button disabled={pending} className="btn-dark w-full py-3.5 disabled:opacity-50">{pending ? "Минутку…" : "Вступить в клуб"}</button>
     </form>
   );
 }

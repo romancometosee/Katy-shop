@@ -184,7 +184,7 @@ export default async function HomePage() {
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-[#e8c98f]/15 blur-3xl transition duration-700 group-hover:scale-125" />
           <p className="text-xs font-semibold uppercase tracking-[.28em] opacity-70">Программа лояльности</p>
           <p className="h-display mt-3 text-4xl sm:text-5xl">Клуб Katy</p>
-          <p className="mt-3 max-w-sm text-white/80">До 10% баллами с каждой покупки и подарок на день рождения. 300 баллов сразу за вступление.</p>
+          <p className="mt-3 max-w-sm text-white/80">Накопительная скидка до 10%, которая растёт с каждой покупкой, и подарок на день рождения.</p>
           <span className="mt-6 inline-flex rounded-full bg-[#e8c98f] px-6 py-3 text-sm font-semibold text-ink transition group-hover:bg-white">Вступить в клуб</span>
         </Link>
         <Link href="/gift" className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#f6d5d9] to-[#f9ece4] p-8 sm:p-10">
