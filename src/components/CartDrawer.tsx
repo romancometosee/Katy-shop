@@ -57,9 +57,9 @@ export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliver
                     <p className="text-xs text-ink-soft">{l.variantLabel}</p>
                     <div className="mt-auto flex items-center justify-between">
                       <div className="flex items-center rounded-full border border-line bg-white">
-                        <button className="p-1.5" onClick={() => setQty(l.variantId, l.qty - 1)} aria-label="Меньше"><MinusIcon className="h-3.5 w-3.5" /></button>
+                        <button className="p-2" onClick={() => setQty(l.variantId, l.qty - 1)} aria-label="Меньше"><MinusIcon className="h-3.5 w-3.5" /></button>
                         <span className="w-6 text-center text-sm">{l.qty}</span>
-                        <button className="p-1.5" onClick={() => setQty(l.variantId, l.qty + 1)} aria-label="Больше"><PlusIcon className="h-3.5 w-3.5" /></button>
+                        <button className="p-2" onClick={() => setQty(l.variantId, l.qty + 1)} aria-label="Больше"><PlusIcon className="h-3.5 w-3.5" /></button>
                       </div>
                       <div className="text-right">
                         {l.oldPrice && <p className="text-xs text-ink-soft line-through">{rub(l.oldPrice * l.qty)}</p>}
@@ -67,7 +67,7 @@ export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliver
                       </div>
                     </div>
                   </div>
-                  <button onClick={() => remove(l.variantId)} className="self-start p-1 text-ink-soft hover:text-rose" aria-label="Удалить"><TrashIcon className="h-4 w-4" /></button>
+                  <button onClick={() => remove(l.variantId)} className="-m-1.5 self-start p-2.5 text-ink-soft hover:text-rose" aria-label="Удалить"><TrashIcon className="h-4 w-4" /></button>
                 </li>
               ))}
             </ul>

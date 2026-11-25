@@ -62,7 +62,7 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
           <button onClick={() => setI((i + 1) % n)} className="absolute right-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/80 shadow md:grid" aria-label="Вперёд"><ChevronRight /></button>
           <div className="absolute bottom-5 left-8 flex gap-2 sm:left-14 md:left-24">
             {banners.map((b, k) => (
-              <button key={b.id} onClick={() => setI(k)} aria-label={`Слайд ${k + 1}`} className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-current" : "w-3 bg-current/30"} ${bannerThemes[banners[i].theme].text}`} />
+              <button key={b.id} onClick={() => setI(k)} aria-label={`Слайд ${k + 1}`} className={`relative h-1.5 rounded-full transition-all after:absolute after:-inset-x-1 after:-inset-y-4 after:content-[''] ${k === i ? "w-8 bg-current" : "w-3 bg-current/30"} ${bannerThemes[banners[i].theme].text}`} />
             ))}
           </div>
         </>

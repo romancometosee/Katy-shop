@@ -34,7 +34,7 @@ export default function RoutineBuilder({ title, current, currentStep, steps }: {
                   type="button"
                   onClick={() => setOn(on.map((o, j) => (j === i ? !o : o)))}
                   aria-label={on[i] ? "Убрать из набора" : "Добавить в набор"}
-                  className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs transition ${on[i] ? "border-ink bg-ink text-white" : "border-line bg-white"}`}
+                  className={`relative flex h-6 w-6 items-center justify-center rounded-full border text-xs transition after:absolute after:-inset-2.5 after:content-[''] ${on[i] ? "border-ink bg-ink text-white" : "border-line bg-white"}`}
                 >
                   {on[i] ? "✓" : ""}
                 </button>

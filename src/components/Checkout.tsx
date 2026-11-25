@@ -114,7 +114,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
                   <p className="text-lg font-semibold">{rub(l.price * l.qty)}</p>
                 </div>
               </div>
-              <button onClick={() => remove(l.variantId)} className="self-start text-ink-soft hover:text-rose" aria-label="Удалить"><TrashIcon /></button>
+              <button onClick={() => remove(l.variantId)} className="-m-2 self-start p-2 text-ink-soft hover:text-rose" aria-label="Удалить"><TrashIcon /></button>
             </li>
           ))}
         </ul>
