@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartProvider";
 import ProductArt from "./ProductArt";
 import PhotoFan from "./PhotoFan";
@@ -22,7 +22,18 @@ export type NavItem = {
 
 export default function Header({ shopName, announcement, nav }: { shopName: string; announcement: string; nav: NavItem[] }) {
   const { count, favorites, setDrawerOpen } = useCart();
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpenNow] = useState<string | null>(null);
+  // меню открывается с короткой задержкой и закрывается не сразу — чтобы не мигало, когда мышь проходит мимо
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openRef = useRef<string | null>(null);
+  openRef.current = open;
+  const setOpen = (href: string | null, delay?: number) => {
+    if (timer.current) clearTimeout(timer.current);
+    const wait = delay ?? (href === null ? 250 : openRef.current ? 90 : 160);
+    if (wait === 0) setOpenNow(href);
+    else timer.current = setTimeout(() => setOpenNow(href), wait);
+  };
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   const [mobile, setMobile] = useState(false);
   const [mobileSub, setMobileSub] = useState<string | null>(null);
   const [q, setQ] = useState("");
@@ -51,8 +62,8 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
         </div>
       </div>
 
-      <div className="relative border-b border-line bg-cream/95 backdrop-blur" onMouseLeave={() => setOpen(null)}>
-        <div className="container-x flex h-16 items-center gap-4 lg:h-20">
+      <div className="relative border-b border-line bg-cream/95 backdrop-blur" onMouseLeave={() => setOpen(null)} onMouseEnter={() => { if (timer.current && openRef.current) clearTimeout(timer.current); }}>
+        <div className="container-x flex h-16 items-center gap-4 lg:h-20" onMouseEnter={() => { if (openRef.current) setOpen(null, 150); }}>
           <button className="-ml-2 p-2 lg:hidden" aria-label="Меню" onClick={() => setMobile(true)}>
             <MenuIcon className="h-6 w-6" />
           </button>
@@ -119,22 +130,32 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
           </ul>
         </nav>
 
+        {/* затемнение страницы под открытым меню */}
+        {open && (
+          <div
+            className="menu-fade absolute inset-x-0 top-full hidden h-screen bg-ink/25 lg:block"
+            onMouseEnter={() => setOpen(null, 120)}
+            onClick={() => setOpen(null, 0)}
+            aria-hidden
+          />
+        )}
+
         {/* мега-меню */}
         {nav.map(
           (item) =>
             open === item.href && (
-              <div key={item.href} className="absolute inset-x-0 top-full hidden border-b border-line bg-white shadow-xl shadow-black/5 lg:block">
+              <div key={item.href} className="menu-fade absolute inset-x-0 top-full z-10 hidden border-b border-line bg-white shadow-xl shadow-black/5 lg:block">
                 <div className="container-x grid grid-cols-12 gap-8 py-8">
                   <div className="col-span-3">
                     <p className="label">Разделы</p>
                     <ul className="space-y-2.5">
                       {item.subs.map((s) => (
                         <li key={s.href}>
-                          <Link href={s.href} onClick={() => setOpen(null)} className="text-[15px] hover:text-rose">{s.name}</Link>
+                          <Link href={s.href} onClick={() => setOpen(null, 0)} className="text-[15px] hover:text-rose">{s.name}</Link>
                         </li>
                       ))}
                       <li>
-                        <Link href={item.href} onClick={() => setOpen(null)} className="text-[15px] font-semibold underline underline-offset-4">Смотреть всё</Link>
+                        <Link href={item.href} onClick={() => setOpen(null, 0)} className="text-[15px] font-semibold underline underline-offset-4">Смотреть всё</Link>
                       </li>
                     </ul>
                   </div>
@@ -143,12 +164,12 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
                     <ul className="grid grid-cols-2 gap-x-6 gap-y-2.5">
                       {item.brands.map((b) => (
                         <li key={b.href}>
-                          <Link href={b.href} onClick={() => setOpen(null)} className="text-[15px] hover:text-rose">{b.name}</Link>
+                          <Link href={b.href} onClick={() => setOpen(null, 0)} className="text-[15px] hover:text-rose">{b.name}</Link>
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <Link href={item.href} onClick={() => setOpen(null)} className="col-span-5 flex overflow-hidden rounded-3xl" style={{ background: item.art.bg }}>
+                  <Link href={item.href} onClick={() => setOpen(null, 0)} className="col-span-5 flex overflow-hidden rounded-3xl" style={{ background: item.art.bg }}>
                     <div className="flex flex-1 flex-col justify-end p-6">
                       <p className="h-display text-3xl">{item.name}</p>
                       <p className="mt-2 text-sm text-ink-soft">{item.description}</p>

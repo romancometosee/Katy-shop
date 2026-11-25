@@ -112,3 +112,10 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) { .reveal { animation: none; } }
+
+/* выпадающее меню и затемнение под ним появляются плавно */
+@keyframes menu-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.menu-fade { animation: menu-fade .18s ease-out; }
