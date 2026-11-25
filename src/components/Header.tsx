@@ -54,7 +54,7 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
   return (
     <header className="sticky top-0 z-40">
       {/* бегущая строка */}
-      <div className="overflow-hidden bg-ink py-2 text-[11px] font-medium uppercase tracking-[.2em] text-white/90">
+      <div className="relative overflow-hidden bg-ink py-2 text-[11px] font-medium uppercase tracking-[.2em] text-white/90">
         <div className="animate-marquee flex w-max gap-12 whitespace-nowrap">
           {[...parts, ...parts, ...parts, ...parts].map((p, i) => (
             <span key={i} className="flex items-center gap-12">
@@ -62,6 +62,10 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
             </span>
           ))}
         </div>
+        {/* тихая ссылка для мастеров: только на компьютере, справа; на телефоне — в меню */}
+        <Link href="/pro" className="absolute inset-y-0 right-0 hidden items-center gap-2 bg-ink pl-8 pr-6 normal-case tracking-[.12em] text-gold-light shadow-[-24px_0_16px_-4px_var(--color-ink)] transition hover:text-white lg:flex">
+          Katy PRO <span className="text-white/60">для мастеров и салонов</span>
+        </Link>
       </div>
 
       <div className="relative border-b border-line bg-cream/95 backdrop-blur" onMouseLeave={() => setOpen(null)} onMouseEnter={() => { if (timer.current && openRef.current) clearTimeout(timer.current); }}>
@@ -227,6 +231,9 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
                 </li>
               ))}
             </ul>
+            <Link href="/pro" onClick={() => setMobile(false)} className="mx-4 mb-6 mt-6 block rounded-2xl border border-line px-4 py-3 text-sm">
+              <span className="font-semibold">Katy PRO</span> <span className="text-ink-soft">для мастеров и салонов</span>
+            </Link>
           </div>
         </div>
       )}

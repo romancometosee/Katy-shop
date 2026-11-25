@@ -26,6 +26,9 @@ export type Variant = {
   price: number; // цена в рублях
   oldPrice?: number; // зачёркнутая цена
   stock: number;
+  /** артикул из кассы / 1С — по нему узнаём товар при загрузке из Excel */
+  sku?: string;
+  barcode?: string;
 };
 
 export type Review = {

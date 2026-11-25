@@ -12,6 +12,8 @@ import { sendSms } from "./customer";
 import { headers } from "next/headers";
 import { slugify } from "./slug";
 import { normPhone } from "./club";
+import { catalogSheets, runImport, type ImportResult } from "./catalog-import";
+import type { Cell, Sheet } from "./xlsx";
 import type { ArtShape, Banner, Database, Gender, OrderStatus, Product, Promotion, PromotionKind, PromotionScope, Settings, Variant } from "./types";
 
 async function requireAdmin() {
@@ -79,7 +81,7 @@ export async function saveProduct(fd: FormData) {
   const id = str(fd, "id");
   const variants = (JSON.parse(str(fd, "variants") || "[]") as Variant[])
     .filter((v) => v.label && v.price > 0)
-    .map((v) => ({ id: v.id || crypto.randomUUID(), label: v.label, price: Math.round(v.price), oldPrice: v.oldPrice ? Math.round(v.oldPrice) : undefined, stock: Math.max(0, Math.round(v.stock || 0)) }));
+    .map((v) => ({ id: v.id || crypto.randomUUID(), label: v.label, price: Math.round(v.price), oldPrice: v.oldPrice ? Math.round(v.oldPrice) : undefined, stock: Math.max(0, Math.round(v.stock || 0)), sku: v.sku?.trim() || undefined, barcode: v.barcode || undefined }));
   const keptImages = JSON.parse(str(fd, "images") || "[]") as string[];
   const uploaded = await saveUploads(fd.getAll("upload") as File[]);
   let imageUrl = str(fd, "imageUrl");
@@ -557,4 +559,47 @@ export async function saveProCategories(fd: FormData) {
   const ids = fd.getAll("cat").map(String);
   await updateDb((db) => { db.settings.proCategories = ids; });
   done("/admin/pro");
+}
+
+// ---------- Загрузка и выгрузка каталога в Excel ----------
+/**
+ * Таблицу читает браузер и присылает строки. apply=false — только показать, что изменится (ничего не сохраняем).
+ */
+export async function importCatalog(rows: Cell[][], opts: { apply: boolean; onlyPriceStock: boolean }): Promise<{ ok: true; result: ImportResult } | { ok: false; error: string }> {
+  await requireAdmin();
+  if (!Array.isArray(rows) || rows.length > 20000) return { ok: false, error: "Слишком большая таблица: можно до 20 000 строк за раз" };
+  try {
+    if (!opts.apply) {
+      const copy = structuredClone(await getDb());
+      return { ok: true, result: runImport(copy, rows, opts.onlyPriceStock) };
+    }
+    const host = (await headers()).get("host") ?? "";
+    const { result, back } = await updateDb((db) => {
+      const before = new Map(db.products.flatMap((p) => p.variants.map((v) => [v.id, v.stock] as const)));
+      const result = runImport(db, rows, opts.onlyPriceStock);
+      // «Сообщить о поступлении»: товар был закончился, а теперь есть
+      const back: Arrival[] = [];
+      for (const a of db.stockAlerts ?? []) {
+        if (a.notifiedAt) continue;
+        const p = db.products.find((x) => x.id === a.productId);
+        const v = p?.variants.find((x) => x.id === a.variantId);
+        if (p && v && v.stock > 0 && (before.get(v.id) ?? 0) <= 0) {
+          a.notifiedAt = new Date().toISOString();
+          back.push({ alertId: a.id, phone: a.phone, text: `Katy: «${p.name}» снова в наличии! ${host ? `https://${host}/product/${p.slug}` : ""}`.trim() });
+        }
+      }
+      return { result, back };
+    });
+    await sendArrivalSms(back);
+    revalidatePath("/", "layout");
+    return { ok: true, result };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Не получилось прочитать таблицу" };
+  }
+}
+
+/** Весь каталог для скачивания в Excel (файл собирает браузер) */
+export async function exportCatalog(): Promise<Sheet[]> {
+  await requireAdmin();
+  return catalogSheets(await getDb());
 }

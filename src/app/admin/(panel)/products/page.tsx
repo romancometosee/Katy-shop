@@ -4,6 +4,7 @@ import ProductImage from "@/components/ProductImage";
 import Pager from "@/components/Pager";
 import MirrorPhotos from "@/components/admin/MirrorPhotos";
 import { isExternal } from "@/lib/mirror";
+import { ExportButton } from "@/components/admin/ExcelImport";
 
 const PER_PAGE = 50;
 import { getDb } from "@/lib/db";
@@ -42,6 +43,11 @@ export default async function ProductsAdmin({ searchParams }: { searchParams: Pr
   return (
     <div>
       <PageHead title="Товары и цены" desc="Меняйте цены и остатки прямо в таблице и нажимайте «Сохранить». Чтобы изменить фото, описание или ноты — нажмите на название." action={{ href: "/admin/products/new", label: "+ Добавить товар" }} />
+      <div className="-mt-4 mb-6 flex flex-wrap items-center gap-3">
+        <Link href="/admin/products/import" className="btn-light">Загрузить из Excel</Link>
+        <ExportButton />
+        <span className="text-xs text-ink-soft">Выгрузили, поправили цены и остатки у себя в таблице, загрузили обратно</span>
+      </div>
       {sp.saved && <Notice>Товар сохранён.</Notice>}
       {sp.bulk && <Notice>Цены обновлены.</Notice>}
       {(() => { const failed = new Set(db.mirrorFailed ?? []); const ext = new Set(db.products.flatMap((p) => p.images).filter(isExternal)); return <MirrorPhotos external={[...ext].filter((u) => !failed.has(u)).length} failed={[...ext].filter((u) => failed.has(u)).length} />; })()}

@@ -73,7 +73,8 @@ export default function ProductForm({ product, brands, categories }: { product?:
           </div>
           <p className="text-xs text-ink-soft">Каждый вариант — отдельный объём или оттенок со своей ценой. «Старая цена» показывается зачёркнутой.</p>
           {variants.map((v, i) => (
-            <div key={v.id ?? i} className="grid grid-cols-2 items-end gap-3 rounded-2xl bg-sand p-3 sm:grid-cols-[1.4fr_1fr_1fr_.8fr_auto]">
+            <div key={v.id ?? i} className="grid grid-cols-2 items-end gap-3 rounded-2xl bg-sand p-3 sm:grid-cols-[1fr_1.4fr_1fr_1fr_.8fr_auto]">
+              <Field label="Артикул"><input value={v.sku ?? ""} onChange={(e) => setV(i, { sku: e.target.value.trim() || undefined })} placeholder="из кассы" className="input py-2" /></Field>
               <Field label="Объём / вариант"><input value={v.label ?? ""} onChange={(e) => setV(i, { label: e.target.value })} placeholder="50 мл" className="input py-2" /></Field>
               <Field label="Цена, ₽"><input value={v.price || ""} onChange={(e) => setV(i, { price: Number(e.target.value.replace(/\D/g, "")) })} inputMode="numeric" className="input py-2" /></Field>
               <Field label="Старая цена"><input value={v.oldPrice || ""} onChange={(e) => setV(i, { oldPrice: Number(e.target.value.replace(/\D/g, "")) || undefined })} inputMode="numeric" className="input py-2" /></Field>
