@@ -20,7 +20,7 @@ const items = [
 export default function AdminNav({ newOrders, arrived = 0, proRequests = 0 }: { newOrders: number; arrived?: number; proRequests?: number }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
-  const active = (h: string) => (h === "/admin" ? path === h : path.startsWith(h));
+  const active = (h: string) => (h === "/admin" ? path === h : path === h || path.startsWith(h + "/"));
   const links = (
     <ul className="space-y-1">
       {items.map(([h, l, i]) => (
