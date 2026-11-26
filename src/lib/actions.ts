@@ -14,11 +14,12 @@ export async function submitReview(fd: FormData) {
   const author = String(fd.get("author") ?? "").trim().slice(0, 60);
   const text = String(fd.get("text") ?? "").trim().slice(0, 2000);
   const rating = Math.min(5, Math.max(1, Number(fd.get("rating")) || 5));
+  const profile = String(fd.get("profile") ?? "").trim().slice(0, 40) || undefined;
   if (!author || !text) return;
   await updateDb((db) => {
     const p = db.products.find((x) => x.id === productId);
     if (!p) return;
-    p.reviews.unshift({ id: crypto.randomUUID(), author, text, rating, date: new Date().toISOString(), approved: false });
+    p.reviews.unshift({ id: crypto.randomUUID(), author, text, rating, profile, date: new Date().toISOString(), approved: false });
   });
 }
 
@@ -27,6 +28,8 @@ export type CheckoutInput = {
   customer: Order["customer"];
   delivery: Order["delivery"];
   promoCode?: string;
+  /** пробник в подарок, который выбрал покупатель */
+  sample?: string;
 };
 
 export type CheckoutResult = { ok: true; number: number } | { ok: false; error: string };
@@ -146,7 +149,7 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       pointsEarned: pointsEarned || undefined,
       loyaltyPercent: usedLoyalty ? loyaltyPercent : undefined,
       proDiscount: items.some((i) => i.pro) ? pro!.discount : undefined,
-      gift: db.settings.giftText,
+      gift: input.sample ? `${db.settings.giftText}: ${cut(input.sample, 120)}` : db.settings.giftText,
       status: "new",
     });
     return { ok: true as const, number };

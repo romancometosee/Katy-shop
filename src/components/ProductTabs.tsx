@@ -10,13 +10,16 @@ export default function ProductTabs({
   reviews,
   productId,
   submitReview,
+  profileKind,
 }: {
+  profileKind?: "skin" | "hair" | "nails" | "scent";
   description: string;
   notes?: { top: string[]; heart: string[]; base: string[] };
   reviews: Review[];
   productId: string;
   submitReview: (fd: FormData) => Promise<void>;
 }) {
+  const profiles = profileKind ? PROFILES[profileKind] : null;
   const tabs = [
     ["desc", "Описание"],
     ...(notes ? [["notes", "Ноты аромата"]] : []),
@@ -55,6 +58,7 @@ export default function ProductTabs({
                     <b>{r.author}</b>
                     <span className="text-xs text-ink-soft">{dateRu(r.date)}</span>
                   </div>
+                  {r.profile && <span className="mt-1 inline-block rounded-full bg-sand px-2.5 py-0.5 text-xs text-ink-soft">{r.profile}</span>}
                   <div className="mt-1 flex gap-0.5 text-gold">{Array.from({ length: 5 }, (_, i) => <StarIcon key={i} filled={i < r.rating} className="h-3.5 w-3.5" />)}</div>
                   <p className="mt-2 text-[15px]">{r.text}</p>
                 </div>
@@ -74,6 +78,12 @@ export default function ProductTabs({
                   <select name="rating" defaultValue="5" className="input">
                     {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{"★".repeat(n)} ({n})</option>)}
                   </select>
+                  {profiles && (
+                    <select name="profile" defaultValue="" className="input">
+                      <option value="">{profiles.label} (необязательно)</option>
+                      {profiles.options.map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  )}
                   <textarea name="text" required rows={4} placeholder="Ваши впечатления" className="input" />
                   <button className="btn-dark w-full">Отправить</button>
                 </>
@@ -93,3 +103,11 @@ export default function ProductTabs({
     </div>
   );
 }
+
+/** Подсказка «про себя» в отзыве: покупателю важнее отзыв человека с такой же кожей или волосами, чем звёзды */
+const PROFILES = {
+  skin: { label: "Ваша кожа", options: ["Сухая кожа", "Жирная кожа", "Комбинированная кожа", "Нормальная кожа", "Чувствительная кожа", "Возрастная кожа"] },
+  hair: { label: "Ваши волосы", options: ["Тонкие волосы", "Густые волосы", "Окрашенные волосы", "Блонд", "Кудрявые волосы", "Сухие, повреждённые", "Жирнеют у корней"] },
+  nails: { label: "Как наносили", options: ["Делаю маникюр сама", "Мастер маникюра", "В салоне", "Ногти тонкие, ломкие"] },
+  scent: { label: "Когда носили", options: ["На каждый день", "На работу", "На вечер", "Зимой", "Летом", "В подарок"] },
+} as const;

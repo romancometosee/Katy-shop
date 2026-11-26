@@ -5,6 +5,7 @@ import FilterPanel, { type FacetOption } from "./FilterPanel";
 import SortSelect from "./SortSelect";
 import ProductCard from "./ProductCard";
 import Pager from "./Pager";
+import AskKatyButton from "./AskKatyButton";
 
 const PER_PAGE = 48;
 import { genderLabel, searchProducts, type Filters } from "@/lib/catalog";
@@ -102,9 +103,28 @@ export default function CatalogView({
             <Suspense><SortSelect /></Suspense>
           </div>
           {products.length === 0 ? (
-            <div className="card p-12 text-center">
-              <p className="h-display text-3xl">Ничего не нашли</p>
-              <p className="mt-2 text-ink-soft">Попробуйте изменить фильтры или поискать по-другому.</p>
+            <div>
+              <div className="card p-8 text-center sm:p-12">
+                <p className="h-display text-3xl">Ничего не нашли</p>
+                <p className="mx-auto mt-2 max-w-md text-ink-soft">
+                  {base.q ? "Возможно, этого товара пока нет на сайте — но он может быть в магазине. Спросите Katy или загляните в разделы." : "Попробуйте изменить фильтры или поискать по-другому."}
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                  {base.q && <AskKatyButton query={String(base.q)} label="Спросить Katy" className="btn-dark px-5 py-2.5" />}
+                  {db.categories.filter((c) => !c.parentId).sort((a, b) => a.order - b.order).map((c) => (
+                    <Link key={c.id} href={`/catalog/${c.slug}`} className="rounded-full border border-line px-4 py-2 text-sm hover:border-ink">{c.name}</Link>
+                  ))}
+                </div>
+              </div>
+              {(() => {
+                const hits = searchProducts(db, {}).filter((p) => p.isHit).slice(0, 4);
+                return hits.length > 0 && (
+                  <div className="mt-10">
+                    <p className="h-display mb-6 text-3xl">Чаще всего покупают</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">{hits.map((p) => <ProductCard key={p.id} p={p} />)}</div>
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <>

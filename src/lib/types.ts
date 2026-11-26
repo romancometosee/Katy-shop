@@ -38,6 +38,8 @@ export type Review = {
   text: string;
   date: string; // ISO
   approved: boolean;
+  /** «Про себя»: тип кожи / волос / как носили — помогает понять, подойдёт ли и вам */
+  profile?: string;
 };
 
 export type Gender = "women" | "men" | "unisex";

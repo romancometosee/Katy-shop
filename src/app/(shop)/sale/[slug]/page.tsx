@@ -6,6 +6,12 @@ import { isPromotionLive, promotionMatches } from "@/lib/catalog";
 import { dateRu } from "@/lib/format";
 import { promoHeadline, promoRules } from "@/lib/promo";
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const promo = (await getDb()).promotions.find((p) => p.slug === slug);
+  return promo ? { title: promo.title, description: promo.subtitle } : {};
+}
+
 export default async function PromoPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<SP> }) {
   const { slug } = await params;
   const sp = await searchParams;

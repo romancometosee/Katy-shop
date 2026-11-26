@@ -77,7 +77,7 @@ export default async function Dashboard() {
             <ul className="space-y-4">
               {pending.map((r) => (
                 <li key={r.id} className="rounded-2xl bg-sand p-4 text-sm">
-                  <p><b>{r.author}</b> · {"★".repeat(r.rating)} · <Link href={`/product/${r.product.slug}`} className="underline" target="_blank">{r.product.name}</Link></p>
+                  <p><b>{r.author}</b> · {"★".repeat(r.rating)} · <Link href={`/product/${r.product.slug}`} className="underline" target="_blank">{r.product.name}</Link>{r.profile ? ` · ${r.profile}` : ""}</p>
                   <p className="mt-1">{r.text}</p>
                   <form action={moderateReview} className="mt-3 flex gap-2">
                     <input type="hidden" name="productId" value={r.product.id} />

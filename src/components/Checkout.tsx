@@ -9,9 +9,11 @@ import { checkPromoCode, loyaltyForPhone, placeOrder, proPricesAction } from "@/
 import PromoHints from "./PromoHints";
 import { useCartQuote } from "./useCartQuote";
 
-type Props = { freeDeliveryFrom: number; deliveryPrice: number; giftText: string; mode: "cart" | "checkout" };
+type Props = { freeDeliveryFrom: number; deliveryPrice: number; giftText: string; mode: "cart" | "checkout"; samples?: string[] };
+const SAMPLE_ANY = "Пусть выберет консультант";
 
-export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mode }: Props) {
+export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mode, samples = [] }: Props) {
+  const [sample, setSample] = useState(SAMPLE_ANY);
   const { lines: cartLines, setQty, remove, clear } = useCart();
   // Katy PRO: для вошедшего мастера цены проф. товаров — его собственные (сервер посчитает так же)
   const [pro, setPro] = useState<{ discount: number; prices: Record<string, number> } | null>(null);
@@ -90,6 +92,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
         customer: { name: get("name"), phone: get("phone"), email: get("email"), city: get("city"), address: get("address"), comment: get("comment") },
         delivery,
         promoCode: applied?.code,
+        sample: samples.length ? sample : undefined,
       });
       if (r.ok) { clear(); setDone(r.number); window.scrollTo({ top: 0 }); }
       else setError(r.error);
@@ -179,6 +182,17 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
               </div>
             )}
           </div>
+          {samples.length > 0 && (
+            <div>
+              <p className="h-display mb-1 text-2xl">Пробник в подарок</p>
+              <p className="mb-4 text-sm text-ink-soft">Положим в посылку — выберите аромат, который давно хотели попробовать.</p>
+              <div className="flex flex-wrap gap-2">
+                {[...samples, SAMPLE_ANY].map((s) => (
+                  <button key={s} type="button" onClick={() => setSample(s)} className={`rounded-full border px-4 py-2 text-sm transition ${sample === s ? "border-ink bg-ink text-white" : "border-line hover:border-ink"}`}>{s}</button>
+                ))}
+              </div>
+            </div>
+          )}
           <textarea name="comment" rows={3} placeholder="Комментарий: пожелания по подарку, удобное время звонка" className="input" />
           <p className="text-xs text-ink-soft">Оплата при получении или по ссылке после подтверждения заказа менеджером.</p>
         </form>

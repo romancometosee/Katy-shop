@@ -1,3 +1,4 @@
+import { actives } from "@/lib/ingredients";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { abs } from "@/lib/site";
@@ -151,10 +152,30 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </div>
 
+      {(() => {
+        if (product.categoryId === "parfyumeriya") return null;
+        const list = actives(`${product.name} ${product.shortDescription} ${product.description} ${product.tags.join(" ")}`);
+        if (!list.length) return null;
+        return (
+          <section className="mt-16">
+            <p className="label">Что внутри и зачем</p>
+            <h2 className="h-display text-3xl sm:text-4xl">Главное в составе — простыми словами</h2>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {list.map((a) => (
+                <div key={a.name} className="rounded-3xl p-5" style={{ background: a.tone }}>
+                  <p className="font-semibold">{a.name}</p>
+                  <p className="mt-1 text-sm text-ink-soft">{a.what}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
+
       {routine && <RoutineBuilder title={routine.title} current={p} currentStep={sub?.name ?? ""} steps={routine.steps} />}
 
       <div className="mt-16">
-        <ProductTabs description={product.description} notes={product.notes} reviews={reviews} productId={product.id} submitReview={submitReview} />
+        <ProductTabs description={product.description} notes={product.notes} reviews={reviews} productId={product.id} submitReview={submitReview} profileKind={({ "uhod-za-licom": "skin", makiyazh: "skin", telo: "skin", volosy: "hair", nogti: "nails", parfyumeriya: "scent" } as const)[product.categoryId as "volosy"]} />
       </div>
 
       {related.length > 0 && (
