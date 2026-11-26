@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PageHead } from "@/components/admin/ui";
 import { getDb } from "@/lib/db";
 import { isPromotionLive, promotionMatches } from "@/lib/catalog";
-import { dateRu } from "@/lib/format";
+import { dateRu, plural } from "@/lib/format";
 import { KIND_NAMES, kindOf, promoHeadline } from "@/lib/promo";
 import { deletePromoCode, savePromoCode } from "@/lib/admin-actions";
 
@@ -25,7 +25,7 @@ export default async function PromotionsAdmin() {
               <div className="flex-1">
                 <p className="text-lg font-semibold">{p.title}</p>
                 <p className="text-sm text-white/75">{p.subtitle}</p>
-                <p className="mt-3 text-xs text-white/75">{dateRu(p.startsAt)} — {dateRu(p.endsAt)} · {n} товаров</p>
+                <p className="mt-3 text-xs text-white/75">{dateRu(p.startsAt)} — {dateRu(p.endsAt)} · {n} {plural(n, "товар", "товара", "товаров")}</p>
               </div>
               <span className={`h-fit rounded-full px-3 py-1 text-xs font-semibold ${live ? "bg-emerald-400 text-ink" : "bg-white/20"}`}>{live ? "Идёт" : p.isActive ? "Запланирована / прошла" : "Выключена"}</span>
             </Link>

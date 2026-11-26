@@ -1,3 +1,4 @@
+import { plural } from "@/lib/format";
 import { PageHead } from "@/components/admin/ui";
 import { getDb } from "@/lib/db";
 import { deleteBrand, saveBrand } from "@/lib/admin-actions";
@@ -27,7 +28,7 @@ export default async function BrandsAdmin() {
               <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="isPopular" defaultChecked={b.isPopular} /> Популярный</label>
               <button className="rounded-full border border-line px-4 py-1.5 text-xs font-semibold">Сохранить</button>
             </form>
-            <span className="w-20 text-xs text-ink-soft">{count(b.id)} товаров</span>
+            <span className="w-20 text-xs text-ink-soft">{count(b.id)} {plural(count(b.id), "товар", "товара", "товаров")}</span>
             <form action={deleteBrand}>
               <input type="hidden" name="id" value={b.id} />
               <button disabled={count(b.id) > 0} className="text-xs text-rose disabled:opacity-20">Удалить</button>

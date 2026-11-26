@@ -29,7 +29,7 @@ export default function ProApply() {
       <p className="text-sm text-ink-soft">Заявку проверяет менеджер, обычно в течение дня.</p>
       <input name="name" required placeholder="Имя *" className="input" />
       <input name="phone" required placeholder="Телефон *" inputMode="tel" className="input" />
-      <select name="kind" className="input" defaultValue="manicure">
+      <select name="kind" aria-label="Кто вы" className="input" defaultValue="manicure">
         {Object.entries(PRO_KINDS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
       </select>
       <input name="city" placeholder="Город" className="input" />

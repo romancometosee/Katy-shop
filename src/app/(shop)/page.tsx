@@ -13,7 +13,7 @@ import AdventTeaser from "@/components/AdventTeaser";
 import { GiftIcon, ShieldIcon, SparkIcon, TruckIcon, ChevronRight, StarIcon } from "@/components/Icons";
 import { getDb } from "@/lib/db";
 import { isPromotionLive, searchProducts, topCategories } from "@/lib/catalog";
-import { rub } from "@/lib/format";
+import { rub, plural } from "@/lib/format";
 import JournalCard from "@/components/JournalCard";
 import { articles } from "@/lib/journal";
 import { articleImages } from "@/lib/journal-images";
@@ -80,7 +80,7 @@ export default async function HomePage() {
               <div className="mt-auto p-4">
                 <p className="h-display text-2xl leading-tight">{c.name}</p>
                 <p className="mt-1 flex items-center text-xs font-semibold text-ink-soft">
-                  {db.products.filter((p) => p.categoryId === c.id && p.isActive).length} товаров <ChevronRight className="h-3.5 w-3.5" />
+                  {(() => { const k = db.products.filter((p) => p.categoryId === c.id && p.isActive).length; return `${k} ${plural(k, "товар", "товара", "товаров")}`; })()} <ChevronRight className="h-3.5 w-3.5" />
                 </p>
               </div>
             </Link>
@@ -139,7 +139,7 @@ export default async function HomePage() {
             <p className="mt-4 text-ink-soft">Ответьте на 4 простых вопроса — мы подберём ароматы под ваш характер, сезон и любимые ноты. А в заказ положим пробники, чтобы вы точно не ошиблись.</p>
             <Link href="/podbor" className="btn-dark mt-8">Подобрать аромат</Link>
           </div>
-          <Link href="/podbor" className="group mt-10 block h-64 w-full max-w-md sm:h-80 lg:mt-0">
+          <Link href="/podbor" aria-label="Подобрать аромат" className="group mt-10 block h-64 w-full max-w-md sm:h-80 lg:mt-0">
             <PhotoFan images={quizImages} className="h-full w-full" />
           </Link>
         </div>

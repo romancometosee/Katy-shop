@@ -103,7 +103,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
       <p className="h-display text-2xl">Ваш заказ</p>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between"><span>Товары</span><span>{rub(subtotal)}</span></div>
-        {proItems > 0 && <div className="text-[#b8935a]">Цены мастера Katy PRO (−{pro!.discount}%) уже в ценах товаров</div>}
+        {proItems > 0 && <div className="text-gold">Цены мастера Katy PRO (−{pro!.discount}%) уже в ценах товаров</div>}
         {quote.discounts.map((d) => <div key={d.promoId} className="flex justify-between gap-3 text-rose"><span>{d.title}</span><span className="shrink-0">−{rub(d.amount)}</span></div>)}
         {loyaltyDiscount > 0 && <div className="flex justify-between text-rose"><span>Накопительная скидка {loyalty}%</span><span>−{rub(loyaltyDiscount)}</span></div>}
         {codeDiscount > 0 && <div className="flex justify-between text-rose"><span>Промокод {applied?.code}</span><span>−{rub(codeDiscount)}</span></div>}

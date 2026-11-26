@@ -18,7 +18,7 @@ import { getDb } from "@/lib/db";
 import { genderLabel, routineFor, searchProducts, toView } from "@/lib/catalog";
 import RoutineBuilder from "@/components/RoutineBuilder";
 import { cartPromosFor, promoBadge, promoRules } from "@/lib/promo";
-import { dateRu } from "@/lib/format";
+import { dateRu, plural } from "@/lib/format";
 import { submitReview } from "@/lib/actions";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -118,7 +118,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="mt-3 flex items-center gap-2 text-sm">
             <span className="flex text-gold">{Array.from({ length: 5 }, (_, i) => <StarIcon key={i} filled={i < Math.round(p.rating)} />)}</span>
             <span className="font-semibold">{p.rating.toFixed(1)}</span>
-            <span className="text-ink-soft">· {reviews.length} отзывов</span>
+            <span className="text-ink-soft">· {reviews.length} {plural(reviews.length, "отзыв", "отзыва", "отзывов")}</span>
           </div>
           {p.shades && (
             <div className="mt-6">

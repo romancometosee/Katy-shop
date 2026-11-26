@@ -43,7 +43,7 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: 
         {v.oldPrice && <span className="pb-1 text-lg text-ink-soft line-through">{rub(v.oldPrice)}</span>}
         {v.oldPrice && <span className="mb-1.5 rounded-full bg-rose px-2.5 py-0.5 text-xs font-bold text-white">−{Math.round((1 - v.price / v.oldPrice) * 100)}%</span>}
       </div>
-      {proP !== undefined ? <p className="mt-1 text-sm font-semibold text-[#b8935a]">Ваша цена мастера Katy PRO</p> : p.promoTitle && <p className="mt-1 text-sm font-semibold text-rose">Акция «{p.promoTitle}»</p>}
+      {proP !== undefined ? <p className="mt-1 text-sm font-semibold text-gold">Ваша цена мастера Katy PRO</p> : p.promoTitle && <p className="mt-1 text-sm font-semibold text-rose">Акция «{p.promoTitle}»</p>}
 
       {p.variants.length > 1 && (
         <div className="mt-6">

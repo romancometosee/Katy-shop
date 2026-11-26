@@ -15,7 +15,7 @@ export default function SortSelect() {
   const pathname = usePathname();
   const params = useSearchParams();
   return (
-    <select
+    <select aria-label="Сортировка"
       value={params.get("sort") ?? "popular"}
       onChange={(e) => {
         const p = new URLSearchParams(params.toString());

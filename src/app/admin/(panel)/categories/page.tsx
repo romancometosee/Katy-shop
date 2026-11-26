@@ -1,3 +1,4 @@
+import { plural } from "@/lib/format";
 import { PageHead } from "@/components/admin/ui";
 import { getDb } from "@/lib/db";
 import { subcategoriesOf, topCategories } from "@/lib/catalog";
@@ -20,7 +21,7 @@ export default async function CategoriesAdmin() {
               <input type="hidden" name="description" value={c.description} />
               <button className="btn-dark px-4 py-2">Сохранить</button>
             </form>
-            <p className="mt-2 text-xs text-ink-soft">{count(c.id)} товаров · адрес /catalog/{c.slug}</p>
+            <p className="mt-2 text-xs text-ink-soft">{count(c.id)} {plural(count(c.id), "товар", "товара", "товаров")} · адрес /catalog/{c.slug}</p>
             <ul className="mt-4 divide-y divide-line">
               {subcategoriesOf(db, c.id).map((s) => (
                 <li key={s.id} className="flex items-center gap-2 py-2">
