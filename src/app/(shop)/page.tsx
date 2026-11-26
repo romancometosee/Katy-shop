@@ -45,6 +45,8 @@ export default async function HomePage() {
   const promos = db.promotions.filter((p) => isPromotionLive(p) && !p.dayDeal);
   const popularBrands = db.brands.filter((b) => b.isPopular).slice(0, 12);
   const s = db.settings;
+  // рекомендации, которыми дополняется «Вы недавно смотрели»: хиты из всех разделов
+  const picks = [...hits, ...searchProducts(db, { sort: "rating" }).slice(0, 24)].map((p) => ({ slug: p.slug, name: p.name, brand: p.brandName, image: p.images[0], price: p.price, cat: p.categoryId }));
   const decantCount = db.products.filter((p) => p.isActive && p.variants.some((v) => isDecant(v.label) && v.stock > 0)).length;
 
   return (
@@ -97,7 +99,7 @@ export default async function HomePage() {
         </div>
       )}
 
-      <RecentlyViewed />
+      <RecentlyViewed fill={picks} />
 
       <Section title="Хиты продаж" kicker="Выбор покупателей" href="/search?hit=1">
         <ProductRail products={hits} />
