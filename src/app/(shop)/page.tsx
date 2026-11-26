@@ -39,9 +39,6 @@ export default async function HomePage() {
   const hits = searchProducts(db, { hit: true }).slice(0, 8);
   const news = searchProducts(db, { sort: "new" }).slice(0, 4);
   const sale = searchProducts(db, { sale: true, sort: "discount" }).slice(0, 4);
-  const niche = searchProducts(db, { subcategory: "parfyumeriya--nishevaya" }).slice(0, 4);
-  const nails = searchProducts(db, { category: "nogti" }).slice(0, 8);
-  const hair = searchProducts(db, { category: "volosy" }).slice(0, 8);
   const promos = db.promotions.filter((p) => isPromotionLive(p) && !p.dayDeal);
   const popularBrands = db.brands.filter((b) => b.isPopular).slice(0, 12);
   const s = db.settings;
@@ -176,12 +173,11 @@ export default async function HomePage() {
         </Section>
       )}
 
-      {/* ногти, волосы, ниша — одним блоком с вкладками, чтобы главная была короче */}
-      <Section title="Популярное в разделах" kicker="Не только парфюмерия">
+      {/* хиты каждого раздела меню — одним блоком с вкладками, в том же порядке, что и меню */}
+      <Section title="Популярное в разделах" kicker="Хиты каждого раздела">
         <RailTabs tabs={[
-          { label: "Ногти", href: "/catalog/nogti", products: nails },
-          { label: "Волосы", href: "/catalog/volosy", products: hair },
-          { label: "Нишевая парфюмерия", href: "/catalog/parfyumeriya/nishevaya", products: niche },
+          ...cats.map((c) => ({ label: c.name, href: `/catalog/${c.slug}`, products: searchProducts(db, { category: c.id }).slice(0, 8) })),
+          { label: "Распив", href: "/raspiv", products: searchProducts(db, { decant: true }).slice(0, 8) },
         ]} />
       </Section>
 

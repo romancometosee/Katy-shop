@@ -20,6 +20,7 @@ export default function RailTabs({ tabs }: { tabs: { label: string; href: string
         <Link href={cur.href} className="ml-auto hidden shrink-0 items-center gap-1 text-sm font-semibold hover:underline sm:flex">Смотреть все <ChevronRight className="h-4 w-4" /></Link>
       </div>
       <ProductRail products={cur.products} />
+      <Link href={cur.href} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4 sm:hidden">Весь раздел «{cur.label}» <ChevronRight className="h-4 w-4" /></Link>
     </div>
   );
 }
