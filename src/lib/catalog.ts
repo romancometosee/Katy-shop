@@ -153,8 +153,24 @@ export type Filters = {
   sort?: "popular" | "price-asc" | "price-desc" | "new" | "rating" | "discount";
 };
 
+/** Как бренды пишут по-русски: «ла рош позе», «эсте лаудер», «ив сен лоран». Для остальных — простая транслитерация */
+const BRAND_RU: Record<string, string> = {
+  chanel: "шанель", dior: "диор кристиан диор", "tom ford": "том форд", "yves saint laurent": "ив сен лоран ysl исл", lancome: "ланком",
+  "giorgio armani": "джорджио армани армани", "maison francis kurkdjian": "мейсон франсис куркджан курkджан баккара mfk", byredo: "байредо буредо",
+  "le labo": "ле лабо", "kilian paris": "килиан киллиан", "ex nihilo": "экс нихило", montale: "монталь", creed: "крид", guerlain: "герлен",
+  initio: "инитио", "escentric molecules": "эксцентрик молекула молекулы", "juliette has a gun": "джульетта", "narciso rodriguez": "нарцисо родригес",
+  "la roche-posay": "ла рош позе ларош", clarins: "кларанс кларинс", sisley: "сислей", "estee lauder": "эсте лаудер эсти лаудер", shiseido: "шисейдо",
+  caudalie: "кодали", erborian: "эрбориан", "charlotte tilbury": "шарлотта тилбери", nars: "нарс", benefit: "бенефит", kerastase: "керастаз",
+  olaplex: "олаплекс оплекс", opi: "опи", cnd: "снд шеллак", moroccanoil: "мароканойл марокканойл морокканойл", rituals: "ритуалс", "sol de janeiro": "сол де жанейро", diptyque: "диптик",
+};
+const LAT: Record<string, string> = { a: "а", b: "б", c: "к", d: "д", e: "е", f: "ф", g: "г", h: "х", i: "и", j: "дж", k: "к", l: "л", m: "м", n: "н", o: "о", p: "п", q: "к", r: "р", s: "с", t: "т", u: "у", v: "в", w: "в", x: "кс", y: "и", z: "з" };
+function brandRu(name: string) {
+  const k = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return BRAND_RU[k] ?? k.replace(/[a-z]/g, (c) => LAT[c] ?? c);
+}
+
 // служебные слова живой речи, которые не помогают искать товар
-const STOP = new Set("есть ли у вас вас нас мне нужен нужна нужно нужны хочу хочется купить покажи покажите найди найдите сколько стоит стоят цена цену какой какая какие какое для под подскажите пожалуйста можно это там такой такая еще ещё или как где что чтобы".split(" "));
+const STOP = new Set("без от про над при есть ли у вас вас нас мне нужен нужна нужно нужны хочу хочется купить покажи покажите найди найдите сколько стоит стоят цена цену какой какая какие какое для под подскажите пожалуйста можно это там такой такая еще ещё или как где что чтобы".split(" "));
 
 /** Слова запроса без служебных, укороченные до основы («шампуни» → «шамп…») */
 export function queryStems(q: string) {
@@ -163,7 +179,8 @@ export function queryStems(q: string) {
     .replace(/ё/g, "е")
     .split(/[^a-zа-я0-9]+/i)
     .filter((w) => w.length > 2 && !STOP.has(w))
-    .map((w) => (w.length > 5 ? w.slice(0, w.length - 2) : w));
+    // «кожа» → «кож», «сухая» → «сух», «шампуни» → «шампун»: так находятся и другие окончания
+    .map((w) => { const b = w.replace(/[аяоеиыуюйьэ]+$/, ""); const r = b.length >= 3 ? b : w; return r.length >= 7 ? r.slice(0, -2) : r; });
 }
 
 // ---------- Поиск с опечатками и «как слышится»: шанель = chanel = shanel, ланком = lancome ----------
@@ -194,7 +211,9 @@ function fuzzyHit(qk: string, words: string[]) {
 }
 
 export function searchProducts(db: Database, f: Filters): ProductView[] {
-  const q = f.q?.trim().toLowerCase().normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
+  const q0 = f.q?.trim().toLowerCase().normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
+  // частые написания слитно / с ошибкой
+  const q = q0?.replace(/гельлак/g, "гель лак").replace(/шелак/g, "шеллак").replace(/спф/g, "spf");
   let list = db.products.filter((p) => p.isActive);
   if (f.ids) list = list.filter((p) => f.ids!.includes(p.id));
   if (f.category) list = list.filter((p) => p.categoryId === f.category);
@@ -204,27 +223,32 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
   if (f.families?.length) list = list.filter((p) => p.family && f.families!.includes(p.family));
   if (f.hit) list = list.filter((p) => p.isHit);
   if (f.isNew) list = list.filter((p) => p.isNew);
+  const rank = new Map<string, number>();
   if (q) {
     const text = (p: Product) => {
       const brand = db.brands.find((b) => b.id === p.brandId)?.name ?? "";
       const notes = p.notes ? [...p.notes.top, ...p.notes.heart, ...p.notes.base].join(" ") : "";
-      const cat = db.categories.find((c) => c.id === (p.subcategoryId ?? p.categoryId))?.name ?? "";
+      const cat = [p.subcategoryId, p.categoryId].map((id) => db.categories.find((c) => c.id === id)?.name ?? "").join(" ");
       const sex = p.gender === "men" ? "мужской мужские мужчине для мужчин" : p.gender === "women" ? "женский женские женщине для женщин" : p.gender === "unisex" ? "унисекс" : "";
-      return [p.name, brand, cat, p.shortDescription, p.family ?? "", notes, p.tags.join(" "), sex].join(" ").toLowerCase().replace(/ё/g, "е").normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
+      return [p.name, brand, brandRu(brand), cat, p.shortDescription, p.family ?? "", notes, p.tags.join(" "), sex].join(" ").toLowerCase().replace(/ё/g, "е").normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
     };
-    const exact = list.filter((p) => text(p).includes(q.replace(/ё/g, "е")));
-    if (exact.length) list = exact;
-    else {
-      // фраза целиком не нашлась (часто так бывает при голосовом поиске:
-      // «есть ли у вас шампунь Olaplex, сколько стоит») — ищем по отдельным словам
-      const stems = queryStems(q);
-      const scored = list.map((p) => {
-        const t = text(p);
-        return { p, s: stems.filter((w) => t.includes(w)).length };
-      });
-      const best = Math.max(0, ...scored.map((x) => x.s));
-      if (best > 0) list = scored.filter((x) => x.s === best).map((x) => x.p);
-      else {
+    const qn = " " + q.replace(/ё/g, "е").replace(/[^a-zа-я0-9]+/gi, " ").trim();
+    const flat = (p: Product) => " " + text(p).replace(/[^a-zа-я0-9]+/gi, " ");
+    // слово должно начинаться так же («том» не находит «ароматом»); фраза целиком и нужный раздел — выше в списке
+    const stems = queryStems(q);
+    const intent = /кож|лиц|морщ|крем/.test(q) ? ["uhod-za-licom", "telo", "makiyazh"] : /волос|шампун|бальзам|кондиционер/.test(q) ? ["volosy"] : /ногт|маникюр|лак/.test(q) ? ["nogti"] : /помад|туш|тональ|румян|тени|тен(ей|и) |блеск/.test(q) ? ["makiyazh"] : /подар/.test(q) ? ["nabory"] : /аромат|духи|парфюм|туалетн/.test(q) ? ["parfyumeriya", "nabory"] : [];
+    const scored = list.map((p) => {
+      const t = flat(p);
+      const exactHit = t.includes(qn);
+      const hits = stems.length ? stems.filter((w) => t.includes(" " + w)).length : exactHit ? 1 : 0;
+      return { p, hits: exactHit ? Math.max(hits, stems.length || 1) : hits, bonus: (exactHit ? 2 : 0) + (intent.includes(p.categoryId) ? 1 : 0) };
+    });
+    const best = Math.max(0, ...scored.map((x) => x.hits));
+    if (best > 0) {
+      const kept = scored.filter((x) => x.hits === best);
+      kept.forEach((x) => rank.set(x.p.id, x.bonus));
+      list = kept.map((x) => x.p);
+    } else {
         // ничего не нашли — пробуем «как слышится» и с одной опечаткой: shanel, диор, ланком, керастаз
         const qks = q.split(/[^a-zа-яё0-9]+/i).filter((w) => w.length > 2 && !STOP.has(w)).map(soundKey);
         const fz = list.map((p) => {
@@ -233,7 +257,6 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
         });
         const fb = Math.max(0, ...fz.map((x) => x.s));
         list = fb > 0 ? fz.filter((x) => x.s === fb).map((x) => x.p) : [];
-      }
     }
   }
   let views = list.map((p) => toView(db, p));
@@ -258,7 +281,7 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
       views.sort((a, b) => b.discountPercent - a.discountPercent);
       break;
     default:
-      views.sort((a, b) => Number(b.isHit) - Number(a.isHit) || b.reviewsCount - a.reviewsCount || b.rating - a.rating);
+      views.sort((a, b) => (rank.get(b.id) ?? 0) - (rank.get(a.id) ?? 0) || Number(b.isHit) - Number(a.isHit) || b.reviewsCount - a.reviewsCount || b.rating - a.rating);
   }
   return views;
 }
