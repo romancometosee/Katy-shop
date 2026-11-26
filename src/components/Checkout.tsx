@@ -125,7 +125,13 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
       {mode === "cart" ? (
         <Link href="/checkout" className="btn-dark w-full">Оформить заказ</Link>
       ) : (
-        <button form="checkout-form" disabled={pending} className="btn-dark w-full">{pending ? "Отправляем…" : "Подтвердить заказ"}</button>
+        <>
+          <label className="flex items-start gap-2 text-xs leading-snug text-ink-soft">
+            <input type="checkbox" form="checkout-form" name="agree" required className="mt-0.5 shrink-0 accent-[var(--color-ink)]" />
+            <span>Принимаю условия <Link href="/legal/oferta" target="_blank" className="underline">оферты</Link> и даю <Link href="/legal/soglasie" target="_blank" className="underline">согласие на обработку данных</Link></span>
+          </label>
+          <button form="checkout-form" disabled={pending} className="btn-dark w-full">{pending ? "Отправляем…" : "Подтвердить заказ"}</button>
+        </>
       )}
       {error && <p className="text-sm text-rose">{error}</p>}
     </div>

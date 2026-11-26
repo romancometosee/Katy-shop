@@ -9,7 +9,7 @@ const items = [
   ["/admin/products", "Товары и цены", "◇"],
   ["/admin/club", "Клуб Katy", "✦"],
   ["/admin/pro", "Katy PRO", "P"],
-  ["/admin/waitlist", "Ждут поступления", "🔔"],
+  ["/admin/waitlist", "Ждут товар и подписки", "🔔"],
   ["/admin/promotions", "Акции и промокоды", "%"],
   ["/admin/banners", "Баннеры на главной", "▭"],
   ["/admin/categories", "Разделы каталога", "☰"],

@@ -221,6 +221,8 @@ export type Settings = {
   proCategories?: string[];
   /** Магазины Katy: самовывоз и страница «Магазины» */
   stores?: Store[];
+  /** Реквизиты продавца для оферты и политики: ИП/ООО, ИНН, ОГРН, адрес */
+  requisites?: string;
 };
 
 export type Store = { name: string; address: string; hours?: string; phone?: string };
@@ -243,6 +245,8 @@ export type Database = {
   adminPassword?: { salt: string; hash: string; changedAt: string };
   /** «Сообщить о поступлении»: кто ждёт товар */
   stockAlerts?: StockAlert[];
+  /** подписка на рассылку из подвала сайта */
+  subscribers?: { email: string; at: string }[];
   /** Katy PRO: мастера и салоны */
   pros?: ProAccount[];
   /** адреса фото, которые не удалось перенести к нам (сайт бренда не отдал) */

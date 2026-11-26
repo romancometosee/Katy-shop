@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NewsSubscribe from "./NewsSubscribe";
 import type { Category, Settings } from "@/lib/types";
 
 export default function Footer({ settings, categories }: { settings: Settings; categories: Category[] }) {
@@ -8,10 +9,7 @@ export default function Footer({ settings, categories }: { settings: Settings; c
         <div className="lg:col-span-2">
           <p className="h-display text-4xl tracking-[.25em] text-white">{settings.shopName.toUpperCase()}</p>
           <p className="mt-3 max-w-sm text-sm">{settings.tagline}. Гарантия подлинности, подарок в каждом заказе и бесплатная консультация по подбору аромата.</p>
-          <form className="mt-6 flex max-w-sm gap-2">
-            <input placeholder="Ваш e-mail для скидок" className="flex-1 rounded-full border border-white/20 bg-transparent px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/40 focus:border-white/50" />
-            <button type="button" className="rounded-full bg-white px-5 text-sm font-semibold text-ink">OK</button>
-          </form>
+          <NewsSubscribe />
         </div>
         <div>
           <p className="mb-4 text-xs font-semibold uppercase tracking-[.2em] text-white">Каталог</p>
@@ -50,7 +48,11 @@ export default function Footer({ settings, categories }: { settings: Settings; c
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col justify-between gap-2 py-6 text-xs text-white/50 sm:flex-row">
           <span>© {new Date().getFullYear()} {settings.shopName}. Только оригинальная продукция.</span>
-          <span>Изображения товаров — иллюстрации до загрузки фотографий</span>
+          <span className="flex flex-wrap gap-x-4 gap-y-1">
+            <Link href="/legal/oferta" className="hover:text-white">Оферта</Link>
+            <Link href="/legal/vozvrat" className="hover:text-white">Возврат и обмен</Link>
+            <Link href="/legal/privacy" className="hover:text-white">Политика конфиденциальности</Link>
+          </span>
         </div>
       </div>
     </footer>

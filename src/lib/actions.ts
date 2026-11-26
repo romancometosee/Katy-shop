@@ -308,3 +308,14 @@ function takeFromStores(v: { stores?: Record<string, number> }, qty: number, pre
     if (!left) break;
   }
 }
+
+/** Подписка на новости из подвала сайта */
+export async function subscribeNews(email: string): Promise<{ ok: boolean; error?: string }> {
+  const e = String(email || "").trim().toLowerCase().slice(0, 120);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return { ok: false, error: "Проверьте адрес почты" };
+  await updateDb((db) => {
+    db.subscribers ??= [];
+    if (!db.subscribers.some((x) => x.email === e)) db.subscribers.push({ email: e, at: new Date().toISOString() });
+  });
+  return { ok: true };
+}

@@ -59,6 +59,17 @@ export default async function Waitlist() {
           </tbody>
         </table>
       </div>
+      <p className="h-display mb-3 mt-10 text-2xl">Подписались на новости ({(db.subscribers ?? []).length})</p>
+      <div className="card p-5 text-sm">
+        {(db.subscribers ?? []).length ? (
+          <>
+            <p className="mb-2 text-xs text-ink-soft">Адреса из формы в подвале сайта. Их можно скопировать в сервис рассылок.</p>
+            <textarea readOnly rows={Math.min(8, (db.subscribers ?? []).length + 1)} className="input font-mono text-xs" value={[...(db.subscribers ?? [])].reverse().map((x) => x.email).join("\n")} />
+          </>
+        ) : (
+          <p className="text-ink-soft">Пока никто. Форма «Ваш e-mail для скидок» — в самом низу сайта.</p>
+        )}
+      </div>
     </div>
   );
 }

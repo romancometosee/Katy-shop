@@ -33,6 +33,9 @@ export default async function SettingsAdmin({ searchParams }: { searchParams: Pr
         <Field label="Магазины (для самовывоза и страницы «Магазины»)" hint="Каждый магазин с новой строки: Название | Адрес | Часы работы | Телефон. Например: Katy на Ленина | Москва, ул. Ленина, 1 | ежедневно 10–21 | +7 900 000-00-00">
           <textarea name="stores" rows={4} className="input font-mono text-xs" defaultValue={(s.stores ?? []).map((x) => [x.name, x.address, x.hours ?? "", x.phone ?? ""].join(" | ").replace(/( \| )+$/, "")).join("\n")} />
         </Field>
+        <Field label="Реквизиты продавца (для оферты и политики конфиденциальности)" hint="Например: ИП Иванова Екатерина Ивановна, ИНН 000000000000, ОГРНИП 000000000000000, адрес: г. Москва, ул. Ленина, 1. Пока пусто — на страницах документов стоит «реквизиты будут указаны».">
+          <textarea name="requisites" rows={3} className="input text-sm" defaultValue={s.requisites ?? ""} />
+        </Field>
         <button className="btn-dark">Сохранить</button>
       </form>
       <form action={resetDemo} className="mt-10 rounded-3xl border border-rose/30 p-6">

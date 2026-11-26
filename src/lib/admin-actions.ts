@@ -492,6 +492,7 @@ export async function saveSettings(fd: FormData) {
       deliveryPrice: num(fd, "deliveryPrice"),
       announcement: str(fd, "announcement"),
       giftText: str(fd, "giftText"),
+      requisites: str(fd, "requisites").slice(0, 1000) || undefined,
       // «Название | Адрес | Часы | Телефон» — по одному магазину в строке
       stores: str(fd, "stores").split(/\r?\n/).map((l) => l.split("|").map((x) => x.trim())).filter((a) => a[0] && a[1]).slice(0, 50)
         .map(([name, address, hours, phone]) => ({ name: name.slice(0, 80), address: address.slice(0, 200), hours: hours?.slice(0, 80) || undefined, phone: phone?.slice(0, 40) || undefined })),
