@@ -8,7 +8,7 @@ import Pager from "./Pager";
 import AskKatyButton from "./AskKatyButton";
 
 const PER_PAGE = 48;
-import { genderLabel, searchProducts, type Filters } from "@/lib/catalog";
+import { genderLabel, isDecant, searchProducts, type Filters } from "@/lib/catalog";
 import type { Database } from "@/lib/types";
 import { plural } from "@/lib/format";
 
@@ -27,6 +27,7 @@ export function filtersFromParams(sp: SP): Filters {
     sale: !!one(sp.sale),
     hit: !!one(sp.hit),
     isNew: !!one(sp.new),
+    decant: !!one(sp.decant),
     sort: (one(sp.sort) as Filters["sort"]) || "popular",
     q: one(sp.q),
   };
@@ -96,7 +97,7 @@ export default function CatalogView({
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[260px_1fr]">
         <Suspense>
-          <FilterPanel brands={brands} genders={genders} families={families} priceRange={priceRange} />
+          <FilterPanel brands={brands} genders={genders} families={families} priceRange={priceRange} decants={all.some((v) => v.variants.some((x) => isDecant(x.label)))} />
         </Suspense>
         <div>
           <div className="mb-6 flex justify-end">

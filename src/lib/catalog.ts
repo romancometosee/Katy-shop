@@ -137,6 +137,9 @@ export function toView(db: Database, product: Product): ProductView {
   };
 }
 
+/** Распив: аромат из большого флакона, разлитый в атомайзер 8–10 мл */
+export const isDecant = (label: string) => /распив|отливант|декант|decant|атомайзер/i.test(label);
+
 export type Filters = {
   ids?: string[];
   category?: string; // id раздела
@@ -150,6 +153,8 @@ export type Filters = {
   sale?: boolean;
   hit?: boolean;
   isNew?: boolean;
+  /** только ароматы, у которых есть распив */
+  decant?: boolean;
   sort?: "popular" | "price-asc" | "price-desc" | "new" | "rating" | "discount";
 };
 
@@ -223,6 +228,7 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
   if (f.families?.length) list = list.filter((p) => p.family && f.families!.includes(p.family));
   if (f.hit) list = list.filter((p) => p.isHit);
   if (f.isNew) list = list.filter((p) => p.isNew);
+  if (f.decant) list = list.filter((p) => p.variants.some((v) => isDecant(v.label)));
   const rank = new Map<string, number>();
   if (q) {
     const text = (p: Product) => {
@@ -230,7 +236,8 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
       const notes = p.notes ? [...p.notes.top, ...p.notes.heart, ...p.notes.base].join(" ") : "";
       const cat = [p.subcategoryId, p.categoryId].map((id) => db.categories.find((c) => c.id === id)?.name ?? "").join(" ");
       const sex = p.gender === "men" ? "мужской мужские мужчине для мужчин" : p.gender === "women" ? "женский женские женщине для женщин" : p.gender === "unisex" ? "унисекс" : "";
-      return [p.name, brand, brandRu(brand), cat, p.shortDescription, p.family ?? "", notes, p.tags.join(" "), sex].join(" ").toLowerCase().replace(/ё/g, "е").normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
+      const decant = p.variants.some((v) => isDecant(v.label)) ? "распив отливант" : "";
+      return [p.name, brand, brandRu(brand), cat, decant, p.shortDescription, p.family ?? "", notes, p.tags.join(" "), sex].join(" ").toLowerCase().replace(/ё/g, "е").normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
     };
     const qn = " " + q.replace(/ё/g, "е").replace(/[^a-zа-я0-9]+/gi, " ").trim();
     const flat = (p: Product) => " " + text(p).replace(/[^a-zа-я0-9]+/gi, " ");

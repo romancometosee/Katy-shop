@@ -16,11 +16,22 @@ function withImages(db: Database): Database {
 
 let queue: Promise<unknown> = Promise.resolve();
 
-export const SEED_VERSION = 4;
+export const SEED_VERSION = 5;
+
+/** Пример распива: у нишевых ароматов демо-каталога появляется «Распив 10 мл» (цена ≈ 100-мл флакон / 10 + 30% за розлив) */
+function addDemoDecants(db: Database) {
+  for (const p of db.products) {
+    if (p.subcategoryId !== "parfyumeriya--nishevaya" || p.variants.some((v) => /распив/i.test(v.label))) continue;
+    const big = p.variants.find((v) => v.label === "100 мл");
+    if (!big) continue;
+    p.variants.unshift({ id: `${p.id}-raspiv-10`, label: "Распив 10 мл", price: Math.round((big.price / 10) * 1.3 / 10) * 10, stock: 10 });
+  }
+}
 
 /** Демо-данные + заполненный адвент-календарь */
 function createSeed() {
   const s = baseSeed();
+  addDemoDecants(s);
   s.promotions.push(...autoAdvent(s));
   return s;
 }
@@ -54,6 +65,8 @@ function upgrade(db: Database): boolean {
     const c = db.categories.find((x) => x.id === "parfyumeriya");
     if (c?.description.startsWith("Более 5000")) c.description = "Оригинальные ароматы: от культовой классики до редкой ниши.";
   }
+  // версия 5: пример распива у нишевых ароматов
+  if ((db.seedVersion ?? 1) < 5) addDemoDecants(db);
   db.seedVersion = SEED_VERSION;
   return true;
 }

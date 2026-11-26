@@ -1,4 +1,5 @@
 "use client";
+import { isDecant } from "@/lib/catalog";
 import Link from "next/link";
 import { useCart } from "./CartProvider";
 import ProductImage from "./ProductImage";
@@ -52,7 +53,9 @@ export default function ProductCard({ p }: { p: ProductView }) {
         )}
         {many && (
           <div className="mt-2 flex flex-wrap gap-1">
-            {p.variants.slice(0, 4).map((v) => <span key={v.id} className="rounded-md bg-sand px-1.5 py-0.5 text-[11px] text-ink-soft">{v.label.replace("Тестер ", "T ")}</span>)}
+            {p.variants.slice(0, 4).map((v) => isDecant(v.label)
+              ? <span key={v.id} className="rounded-md bg-rose/10 px-1.5 py-0.5 text-[11px] text-rose">{v.label.replace(/^Распив/i, "распив")}</span>
+              : <span key={v.id} className="rounded-md bg-sand px-1.5 py-0.5 text-[11px] text-ink-soft">{v.label.replace("Тестер ", "T ")}</span>)}
           </div>
         )}
         <div className="mt-1.5 flex items-center gap-1 text-xs text-ink-soft">

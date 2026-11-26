@@ -11,7 +11,9 @@ export default function FilterPanel({
   genders,
   families,
   priceRange,
+  decants,
 }: {
+  decants?: boolean;
   brands: FacetOption[];
   genders: FacetOption[];
   families: FacetOption[];
@@ -66,7 +68,7 @@ export default function FilterPanel({
   const panel = (
     <div>
       <div className="flex flex-wrap gap-2 border-b border-line pb-5">
-        {[["sale", "Со скидкой"], ["hit", "Хиты"], ["new", "Новинки"]].map(([k, l]) => (
+        {[["sale", "Со скидкой"], ["hit", "Хиты"], ["new", "Новинки"], ...(decants ? [["decant", "Распив"]] : [])].map(([k, l]) => (
           <button key={k} onClick={() => flag(k)} className={`chip ${params.get(k) ? "chip-active" : ""}`}>{l}</button>
         ))}
       </div>

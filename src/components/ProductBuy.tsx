@@ -1,4 +1,5 @@
 "use client";
+import { isDecant } from "@/lib/catalog";
 import StockAlertForm from "./StockAlertForm";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartProvider";
@@ -9,7 +10,7 @@ import type { ProductView } from "@/lib/catalog";
 export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: ProductView; giftText: string; freeDeliveryFrom: number; pro?: { discount: number; prices: Record<string, number> } }) {
   const { add, favorites, toggleFavorite } = useCart();
   const preferred = p.variants[Math.floor((p.variants.length - 1) / 2)];
-  const firstAvailable = preferred?.stock > 0 ? preferred : p.variants.find((v) => v.stock > 0) ?? p.variants[0];
+  const firstAvailable = preferred?.stock > 0 ? preferred : p.variants.find((v) => v.stock > 0 && !isDecant(v.label)) ?? p.variants.find((v) => v.stock > 0) ?? p.variants[0];
   const [vid, setVid] = useState(firstAvailable?.id);
   const [qty, setQty] = useState(1);
   const v0 = p.variants.find((x) => x.id === vid) ?? p.variants[0];
@@ -70,6 +71,12 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: 
             ))}
           </div>
         </div>
+      )}
+
+      {isDecant(v.label) && (
+        <p className="mt-4 rounded-2xl bg-sand px-4 py-3 text-sm">
+          <b>Распив</b> — отливаем аромат из оригинального флакона в удобный атомайзер. Хватит, чтобы носить несколько недель и понять, ваш ли это аромат, прежде чем брать большой флакон.
+        </p>
       )}
 
       <div ref={buyRef} className="mt-6 flex gap-3">
