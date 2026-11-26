@@ -32,11 +32,21 @@ export async function passwordKind(): Promise<"own" | "env" | "default"> {
   return process.env.ADMIN_PASSWORD ? "env" : "default";
 }
 
+// Русская раскладка → латинская: «лфен2026», набранное без переключения языка, = «katy2026»
+const RU = "йцукенгшщзхъфывапролджэячсмитьбю", EN = "qwertyuiop[]asdfghjkl;'zxcvbnm,.";
+const toLatin = (s: string) => s.replace(/[а-яё]/gi, (ch) => { const lo = ch.toLowerCase(); const i = RU.indexOf(lo === "ё" ? "е" : lo); if (i < 0) return ch; const e = EN[i]; return ch === lo ? e : e.toUpperCase(); });
+
 export async function checkAdminPassword(password: string): Promise<boolean> {
   password = password.trim(); // телефон часто добавляет пробел после слова
+  const tries = [...new Set([password, toLatin(password)])];
   const own = (await getDb()).adminPassword;
-  if (own) return (await pbkdf2(password, own.salt)) === own.hash;
-  return password === (process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD);
+  if (own) {
+    for (const p of tries) if ((await pbkdf2(p, own.salt)) === own.hash) return true;
+    return false;
+  }
+  const want = process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD;
+  // пароль по умолчанию открыт в коде, поэтому для него не важны заглавные буквы (телефон любит делать первую букву большой)
+  return tries.some((p) => p === want || (!process.env.ADMIN_PASSWORD && p.toLowerCase() === want));
 }
 
 export async function setAdminPassword(password: string) {
@@ -49,7 +59,9 @@ export async function setAdminPassword(password: string) {
 export async function adminToken(): Promise<string> {
   const db = await getDb();
   const pw = db.adminPassword?.hash ?? (await sha(process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD));
-  return sha(`katy-admin:${await authKey()}:${pw}`);
+  // Без ключа из данных: на Cloudflare данные доходят до всех копий сайта не сразу, и вход «не держался».
+  // Свой пароль хранится только отпечатком в данных (его не узнать), так что подделать cookie без пароля нельзя.
+  return sha(`katy-admin:${process.env.ADMIN_SECRET ?? ""}:${pw}`);
 }
 
 export async function isAdmin(): Promise<boolean> {

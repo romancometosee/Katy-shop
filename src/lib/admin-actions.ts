@@ -45,7 +45,7 @@ export async function login(_: unknown, fd: FormData) {
   // не больше 10 неверных паролей в час с одного адреса — подобрать пароль перебором не выйдет
   const h = await headers();
   const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  const key = `admin:${ip}`;
+  const key = `admin2:${ip}`; // новое имя — старые блокировки после неудачных попыток сброшены
   const now = Date.now();
   const rec = (await getDb()).loginCodes?.find((c) => c.phone === key);
   if (rec && rec.tries >= 10 && new Date(rec.expires).getTime() > now) return { error: "Слишком много попыток. Попробуйте через час." };
