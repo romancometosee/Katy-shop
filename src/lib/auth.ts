@@ -12,13 +12,12 @@ const hex = (b: ArrayBuffer | Uint8Array) => Array.from(b instanceof Uint8Array 
 const sha = async (s: string) => hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)));
 
 /** Секретный ключ сайта: из ADMIN_SECRET, иначе случайный, созданный один раз и сохранённый в данных */
-let cachedKey: string | undefined; // ключ не меняется — читаем данные один раз, а не на каждой странице
+// Ключ читаем из данных каждый раз (без запоминания в памяти): на Cloudflare сайт работает сразу в нескольких
+// копиях, и запомненный в одной из них устаревший ключ выкидывал бы из админки сразу после входа.
 export async function authKey(): Promise<string> {
   if (process.env.ADMIN_SECRET) return process.env.ADMIN_SECRET;
-  if (cachedKey) return cachedKey;
   const db = await getDb();
-  cachedKey = db.authKey ?? (await updateDb((d) => (d.authKey ??= hex(crypto.getRandomValues(new Uint8Array(32))))));
-  return cachedKey;
+  return db.authKey ?? (await updateDb((d) => (d.authKey ??= hex(crypto.getRandomValues(new Uint8Array(32))))));
 }
 
 async function pbkdf2(password: string, salt: string) {
@@ -34,6 +33,7 @@ export async function passwordKind(): Promise<"own" | "env" | "default"> {
 }
 
 export async function checkAdminPassword(password: string): Promise<boolean> {
+  password = password.trim(); // телефон часто добавляет пробел после слова
   const own = (await getDb()).adminPassword;
   if (own) return (await pbkdf2(password, own.salt)) === own.hash;
   return password === (process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD);

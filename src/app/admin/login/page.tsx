@@ -9,7 +9,7 @@ export default function LoginPage() {
       <form action={action} className="card w-full max-w-sm space-y-4 p-8">
         <p className="h-display text-center text-4xl tracking-[.25em]">KATY</p>
         <p className="text-center text-sm text-ink-soft">Вход в управление магазином</p>
-        <input name="password" type="password" required placeholder="Пароль" className="input" autoFocus />
+        <input name="password" type="password" required placeholder="Пароль" className="input" autoFocus autoCapitalize="none" autoCorrect="off" autoComplete="current-password" spellCheck={false} />
         {state?.error && <p className="text-sm text-rose">{state.error}</p>}
         <button disabled={pending} className="btn-dark w-full">Войти</button>
       </form>
