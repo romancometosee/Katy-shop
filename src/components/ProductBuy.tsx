@@ -45,6 +45,15 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: 
       </div>
       {proP !== undefined ? <p className="mt-1 text-sm font-semibold text-gold">Ваша цена мастера Katy PRO</p> : p.promoTitle && <p className="mt-1 text-sm font-semibold text-rose">Акция «{p.promoTitle}»</p>}
 
+      {(() => {
+        // цена за 1 мл — чтобы было видно, что большой флакон выгоднее
+        const ml = (label: string) => { const m = /(\d+(?:[.,]\d+)?)\s*мл/i.exec(label); return m ? Number(m[1].replace(",", ".")) : 0; };
+        const priced = p.variants.filter((x) => ml(x.label) > 0);
+        if (priced.length < 2 || !ml(v.label)) return null;
+        const per = (x: typeof v) => (pro?.prices[x.id] ?? x.price) / ml(x.label);
+        return <p className="mt-1 text-xs text-ink-soft">{rub(Math.round(per(v)))} за 1 мл</p>;
+      })()}
+
       {p.variants.length > 1 && (
         <div className="mt-6">
           <p className="label">Объём</p>
@@ -53,8 +62,7 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: 
               <button
                 key={x.id}
                 onClick={() => setVid(x.id)}
-                disabled={x.stock <= 0}
-                className={`rounded-2xl border px-4 py-3 text-left text-sm transition disabled:opacity-40 ${x.id === v.id ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink/40"}`}
+                className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${x.stock <= 0 && x.id !== v.id ? "opacity-50" : ""} ${x.id === v.id ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-ink/40"}`}
               >
                 <span className="block font-semibold">{x.label}</span>
                 <span className={`text-xs ${x.id === v.id ? "text-white/70" : "text-ink-soft"}`}>{x.stock > 0 ? rub(pro?.prices[x.id] ?? x.price) : "нет в наличии"}</span>

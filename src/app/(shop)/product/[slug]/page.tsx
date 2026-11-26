@@ -50,7 +50,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const master = isProProduct(db, product) ? proFor(db, await currentCustomer()) : undefined;
   const pro = master ? { discount: master.discount, prices: Object.fromEntries(p.variants.map((v) => [v.id, proPrice(product.variants.find((x) => x.id === v.id)?.price ?? v.price, v.price, master.discount)])) } : undefined;
   const routine = routineFor(db, product);
-  const related = searchProducts(db, { subcategory: product.subcategoryId }).filter((x) => x.id !== p.id).slice(0, 4);
+  // для ароматов «похожие» — по общим нотам и семейству, а не просто из того же раздела
+  const myNotes = new Set(product.notes ? [...product.notes.top, ...product.notes.heart, ...product.notes.base].map((n) => n.toLowerCase()) : []);
+  const byNotes = myNotes.size
+    ? db.products
+        .filter((x) => x.isActive && x.id !== product.id && x.notes && x.categoryId === "parfyumeriya")
+        .map((x) => {
+          const shared = [...x.notes!.top, ...x.notes!.heart, ...x.notes!.base].filter((n) => myNotes.has(n.toLowerCase()));
+          return { x, shared: [...new Set(shared.map((n) => n.toLowerCase()))], score: shared.length + (x.family && x.family === product.family ? 1.5 : 0) };
+        })
+        .filter((r) => r.shared.length > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 4)
+    : [];
+  const sharedNotes = [...new Set(byNotes.flatMap((r) => r.shared))].slice(0, 5);
+  const related = byNotes.length >= 2
+    ? searchProducts(db, { ids: byNotes.map((r) => r.x.id) }).sort((a, b) => byNotes.findIndex((r) => r.x.id === a.id) - byNotes.findIndex((r) => r.x.id === b.id))
+    : searchProducts(db, { subcategory: product.subcategoryId }).filter((x) => x.id !== p.id).slice(0, 4);
   const sameBrand = searchProducts(db, { brands: [product.brandId] }).filter((x) => x.id !== p.id).slice(0, 4);
 
   const facts: [string, string][] = [
@@ -183,7 +199,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       {related.length > 0 && (
-        <Section title="Похожие товары" className="!mt-10 !px-0">
+        <Section title={byNotes.length >= 2 ? "Похожие по звучанию" : "Похожие товары"} kicker={byNotes.length >= 2 && sharedNotes.length ? `Общие ноты: ${sharedNotes.join(", ")}` : undefined} className="!mt-10 !px-0">
           <ProductRail products={related} />
         </Section>
       )}
