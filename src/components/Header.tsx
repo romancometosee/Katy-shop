@@ -7,6 +7,7 @@ import ProductArt from "./ProductArt";
 import PhotoFan from "./PhotoFan";
 import SearchSuggest from "./SearchSuggest";
 import MicButton from "./MicButton";
+import AccountMenu from "./AccountMenu";
 import { useOverlay } from "./useOverlay";
 import { categoryImages } from "@/lib/productImages";
 import { BagIcon, ChevronDown, ChevronRight, CloseIcon, HeartIcon, MenuIcon, SearchIcon, UserIcon } from "./Icons";
@@ -99,9 +100,7 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
             <Link href="/search" className="p-2 lg:hidden" aria-label="Поиск">
               <SearchIcon className="h-6 w-6" />
             </Link>
-            <Link href="/account" className="hidden p-2 sm:block" aria-label="Личный кабинет" title="Личный кабинет">
-              <UserIcon className="h-6 w-6" />
-            </Link>
+            <AccountMenu />
             <Link href="/favorites" className="relative p-2" aria-label="Избранное">
               <HeartIcon className="h-6 w-6" />
               {favorites.length > 0 && (

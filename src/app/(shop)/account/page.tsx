@@ -28,7 +28,7 @@ export default async function AccountPage() {
   if (!phone)
     return (
       <div className="container-x pt-8">
-        <Breadcrumbs items={[{ name: "Личный кабинет" }]} />
+        <div className="flex items-center justify-between gap-4"><Breadcrumbs items={[{ name: "Личный кабинет" }]} /><Link href="/" aria-label="Закрыть личный кабинет" title="Закрыть" className="-m-2 grid h-10 w-10 place-items-center rounded-full text-2xl leading-none text-ink-soft hover:bg-sand hover:text-ink">×</Link></div>
         <div className="mt-10"><AccountLogin sms={await smsEnabled()} /></div>
       </div>
     );
@@ -68,7 +68,7 @@ export default async function AccountPage() {
 
   return (
     <div className="container-x pt-8">
-      <Breadcrumbs items={[{ name: "Личный кабинет" }]} />
+      <div className="flex items-center justify-between gap-4"><Breadcrumbs items={[{ name: "Личный кабинет" }]} /><Link href="/" aria-label="Закрыть личный кабинет" title="Закрыть" className="-m-2 grid h-10 w-10 place-items-center rounded-full text-2xl leading-none text-ink-soft hover:bg-sand hover:text-ink">×</Link></div>
       <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[.28em] text-rose">Личный кабинет</p>
