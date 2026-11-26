@@ -92,7 +92,7 @@ export default async function HomePage() {
 
       {/* баннеры акций и подборок — уже не на первом экране */}
       {banners.length > 0 && (
-        <div className="container-x mt-20">
+        <div className="container-x mt-12 sm:mt-16">
           <HeroSlider banners={banners} />
         </div>
       )}

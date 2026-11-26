@@ -24,22 +24,22 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
         {banners.map((b) => {
           const t = bannerThemes[b.theme];
           return (
-            <div key={b.id} className="relative flex min-h-[420px] w-full shrink-0 items-center lg:min-h-[520px]" style={{ background: t.bg }}>
+            <div key={b.id} className="relative flex min-h-[230px] w-full shrink-0 items-center lg:min-h-[260px]" style={{ background: t.bg }}>
               {b.image && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={b.image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-90" />
               )}
-              <div className="relative z-10 max-w-2xl px-8 py-12 sm:px-14 md:px-24">
-                <h2 className={`h-display text-5xl leading-[1.05] sm:text-6xl lg:text-7xl ${t.text}`}>{b.title}</h2>
-                <p className={`mt-5 max-w-md text-base sm:text-lg ${t.sub}`}>{b.subtitle}</p>
-                <Link href={b.link} className={`btn mt-8 ${t.btn}`}>{b.buttonText}</Link>
+              <div className="relative z-10 max-w-2xl px-7 py-7 sm:px-14 md:px-24">
+                <h2 className={`h-display text-3xl leading-[1.05] sm:text-4xl lg:text-5xl ${t.text}`}>{b.title}</h2>
+                <p className={`mt-2 max-w-md text-sm sm:text-base ${t.sub}`}>{b.subtitle}</p>
+                <Link href={b.link} className={`btn mt-4 py-2.5 ${t.btn}`}>{b.buttonText}</Link>
               </div>
               {!b.image && (
                 bannerImages[b.theme]?.length ? (
                 <div className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-[46%] items-center justify-end gap-5 pr-12 lg:flex">
                   {bannerImages[b.theme].slice(0, 2).map((src, k) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <div key={src} className={`katy-float flex aspect-[3/4] w-[40%] max-w-[230px] items-center justify-center rounded-[1.75rem] bg-white p-5 shadow-2xl ${k ? "mt-24 [animation-delay:-3s]" : "-mt-10"}`}>
+                    <div key={src} className={`katy-float flex aspect-square w-[30%] max-w-[170px] items-center justify-center rounded-[1.5rem] bg-white p-4 shadow-2xl ${k ? "mt-10 [animation-delay:-3s]" : "-mt-6"}`}>
                       <img src={src} alt="" referrerPolicy="no-referrer" className="h-full w-full object-contain mix-blend-multiply brightness-[1.08] contrast-[1.03]" />
                     </div>
                   ))}
@@ -60,7 +60,7 @@ export default function HeroSlider({ banners }: { banners: Banner[] }) {
         <>
           <button onClick={() => setI((i - 1 + n) % n)} className="absolute left-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/80 shadow md:grid" aria-label="Назад"><ChevronLeft /></button>
           <button onClick={() => setI((i + 1) % n)} className="absolute right-4 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/80 shadow md:grid" aria-label="Вперёд"><ChevronRight /></button>
-          <div className="absolute bottom-5 left-8 flex gap-2 sm:left-14 md:left-24">
+          <div className="absolute bottom-3 left-7 flex gap-2 sm:left-14 md:left-24">
             {banners.map((b, k) => (
               <button key={b.id} onClick={() => setI(k)} aria-label={`Слайд ${k + 1}`} className={`relative h-1.5 rounded-full transition-all after:absolute after:-inset-x-1 after:-inset-y-4 after:content-[''] ${k === i ? "w-8 bg-current" : "w-3 bg-current/30"} ${bannerThemes[banners[i].theme].text}`} />
             ))}
