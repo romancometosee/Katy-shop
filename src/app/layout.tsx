@@ -8,7 +8,7 @@ const manrope = Manrope({ subsets: ["latin", "cyrillic"], variable: "--font-manr
 
 export const metadata: Metadata = {
   title: { default: "Katy — парфюмерия и косметика", template: "%s · Katy" },
-  description: "Оригинальная парфюмерия и косметика: более 5000 ароматов, подбор аромата и подарок в каждом заказе.",
+  description: "Оригинальная парфюмерия и косметика: уход, макияж, волосы, ногти, подбор аромата и подарок в каждом заказе.",
   metadataBase: new URL(SITE_URL),
   // как ссылка на сайт выглядит в WhatsApp, Telegram, ВКонтакте
   openGraph: { type: "website", locale: "ru_RU", siteName: "Katy", title: "Katy — парфюмерия и косметика", description: "Оригинальная парфюмерия и косметика любимых брендов. Подарок в каждом заказе." },

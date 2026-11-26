@@ -1,6 +1,7 @@
 "use server";
 // Вход в личный кабинет: код по SMS или (пока SMS не подключены) номер одного из своих заказов
 import { revalidatePath } from "next/cache";
+import { overLimit } from "./limit";
 import { updateDb } from "./db";
 import { normPhone } from "./club";
 import { endSession, hashCode, sendSms, smsEnabled, startSession } from "./customer";
@@ -8,6 +9,7 @@ import { endSession, hashCode, sendSms, smsEnabled, startSession } from "./custo
 export type AuthResult = { ok: true } | { ok: false; error: string };
 
 export async function requestCode(rawPhone: string): Promise<AuthResult & { sms?: boolean }> {
+  if (await overLimit("sms", 10, 3600000)) return { ok: false, error: "Слишком много попыток. Попробуйте через час." };
   const phone = normPhone(rawPhone ?? "");
   if (phone.length !== 11) return { ok: false, error: "Проверьте номер телефона" };
   if (!(await smsEnabled())) return { ok: false, error: "nosms" };
@@ -47,6 +49,7 @@ export async function verifyCode(rawPhone: string, code: string): Promise<AuthRe
 
 /** Пока SMS не подключены: телефон + номер любого своего заказа */
 export async function loginByOrder(rawPhone: string, orderNumber: string): Promise<AuthResult> {
+  if (await overLimit("login", 30, 3600000)) return { ok: false, error: "Слишком много попыток входа. Попробуйте через час." };
   const phone = normPhone(rawPhone ?? "");
   const digits = String(orderNumber ?? "").replace(/\D/g, "");
   const n = Number(digits);

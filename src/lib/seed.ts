@@ -28,7 +28,7 @@ const sub = (parentId: string, id: string, name: string, order: number): Categor
 });
 
 export const seedCategories: Category[] = [
-  top("parfyumeriya", "Парфюмерия", "Более 5000 оригинальных ароматов: от культовой классики до редкой ниши.", 1, art("flacon-square", "#f3d7c6", "#1c1917", "#f7ece4")),
+  top("parfyumeriya", "Парфюмерия", "Оригинальные ароматы: от культовой классики до редкой ниши.", 1, art("flacon-square", "#f3d7c6", "#1c1917", "#f7ece4")),
   sub("parfyumeriya", "zhenskie", "Женские ароматы", 1),
   sub("parfyumeriya", "muzhskie", "Мужские ароматы", 2),
   sub("parfyumeriya", "uniseks", "Унисекс", 3),

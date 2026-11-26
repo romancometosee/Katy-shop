@@ -206,7 +206,7 @@ export default async function HomePage() {
       </Section>
 
       {/* бренды */}
-      <Section title="Популярные бренды" kicker="Более 300 марок" href="/brands" linkText="Все бренды">
+      <Section title="Популярные бренды" kicker="Только оригинал" href="/brands" linkText="Все бренды">
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-3 lg:grid-cols-6">
           {popularBrands.map((b) => (
             <Link key={b.id} href={`/brands/${b.slug}`} className="grid h-28 place-items-center bg-white px-4 text-center font-serif text-xl tracking-wide transition hover:bg-sand">

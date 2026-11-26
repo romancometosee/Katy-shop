@@ -26,7 +26,7 @@ export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliver
         {lines.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
             <p className="h-display text-2xl">Пока пусто</p>
-            <p className="text-sm text-ink-soft">Загляните в каталог — там более 5000 ароматов и средств ухода.</p>
+            <p className="text-sm text-ink-soft">Загляните в каталог — там ароматы, уход, макияж и всё для волос и ногтей.</p>
             <Link href="/catalog/parfyumeriya" onClick={() => setDrawerOpen(false)} className="btn-dark">В каталог</Link>
           </div>
         ) : (

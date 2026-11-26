@@ -5,12 +5,14 @@ import { updateDb } from "./db";
 import { toView } from "./catalog";
 import { SCENT_WHEN, type Order, type ScentVotes } from "./types";
 import { headers } from "next/headers";
+import { overLimit } from "./limit";
 import { quoteCart, type CartQuote } from "./promo";
 import { isProProduct, proFor, proPrice, PRO_KINDS } from "./pro";
 import { currentCustomer } from "./customer";
 import { GIFT_BOX, GIFT_BOXES, LOYALTY_MODE, WELCOME_BONUS, discountLevel, normPhone, parseGiftCard, pointsForOrder, totalSpend, yearSpend } from "./club";
 
 export async function submitReview(fd: FormData) {
+  if (await overLimit("review", 10, 3600000)) return;
   const productId = String(fd.get("productId"));
   const author = String(fd.get("author") ?? "").trim().slice(0, 60);
   const text = String(fd.get("text") ?? "").trim().slice(0, 2000);
@@ -59,8 +61,10 @@ export async function quoteCartAction(items: { productId: string; variantId: str
 const cut = (s: unknown, n: number) => (typeof s === "string" ? s.trim().slice(0, n) : "");
 
 export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> {
+  if (await overLimit("order", 10, 600000)) return { ok: false, error: "Слишком много заказов подряд. Подождите несколько минут или позвоните нам." };
   const c = input.customer;
   if (!c.name?.trim() || !c.phone?.trim()) return { ok: false, error: "Укажите имя и телефон" };
+  if (normPhone(c.phone).length !== 11) return { ok: false, error: "Проверьте номер телефона: нужно 11 цифр, например +7 900 123-45-67" };
   if (!Array.isArray(input.items) || !input.items.length) return { ok: false, error: "Корзина пуста" };
   if (input.items.length > 100) return { ok: false, error: "Слишком много позиций в одном заказе — позвоните нам" };
   if (!["courier", "pickup", "post"].includes(input.delivery)) return { ok: false, error: "Выберите способ доставки" };
@@ -172,6 +176,7 @@ export async function loyaltyForPhone(phone: string) {
 
 /** Вступление в Клуб Katy */
 export async function joinClub(input: { name: string; phone: string; birthday?: string; email?: string; agree: boolean }): Promise<JoinResult> {
+  if (await overLimit("club", 10, 3600000)) return { ok: false, error: "Слишком много попыток. Попробуйте позже." };
   const name = input.name?.trim().slice(0, 60);
   const phone = normPhone(input.phone ?? "");
   if (!name) return { ok: false, error: "Укажите имя" };
@@ -192,6 +197,7 @@ export async function joinClub(input: { name: string; phone: string; birthday?: 
 
 /** «Сообщить о поступлении»: запоминаем телефон, оповестим, когда товар появится */
 export async function subscribeStock(input: { productId: string; variantId: string; phone: string }) {
+  if (await overLimit("stock", 20, 3600000)) return { ok: false as const, error: "Слишком много попыток. Попробуйте позже." };
   const phone = normPhone(input.phone ?? "");
   if (phone.length !== 11) return { ok: false as const, error: "Проверьте номер телефона" };
   return updateDb((db) => {
@@ -228,6 +234,7 @@ export async function proPricesAction(items: { productId: string; variantId: str
 
 /** Katy PRO: заявка мастера или салона */
 export async function applyPro(input: { name: string; phone: string; kind: string; salon?: string; city?: string; social?: string; comment?: string }) {
+  if (await overLimit("pro", 5, 3600000)) return { ok: false as const, error: "Слишком много заявок. Попробуйте позже." };
   const phone = normPhone(input.phone ?? "");
   const name = input.name?.trim().slice(0, 80);
   if (!name || phone.length !== 11) return { ok: false as const, error: "Укажите имя и телефон" };

@@ -16,7 +16,7 @@ function withImages(db: Database): Database {
 
 let queue: Promise<unknown> = Promise.resolve();
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 
 /** Демо-данные + заполненный адвент-календарь */
 function createSeed() {
@@ -33,18 +33,26 @@ function upgrade(db: Database): boolean {
     const ids = new Set(have.map((x) => x.id));
     from.forEach((x) => { if (!ids.has(x.id)) have.push(x); });
   };
-  add(db.categories, seed.categories);
-  add(db.brands, seed.brands);
-  add(db.products, seed.products);
-  // порядок разделов в меню — как в новой версии (новый раздел «Ногти» встаёт перед «Подарочными наборами»)
-  for (const c of db.categories) {
-    const s = seed.categories.find((x) => x.id === c.id);
-    if (s && !c.parentId) c.order = s.order;
+  // до версии 3: новые разделы, бренды и товары демо-каталога (позже не добавляем — вдруг их удалили в админке)
+  if ((db.seedVersion ?? 1) < 3) {
+    add(db.categories, seed.categories);
+    add(db.brands, seed.brands);
+    add(db.products, seed.products);
+    // порядок разделов в меню — как в новой версии (новый раздел «Ногти» встаёт перед «Подарочными наборами»)
+    for (const c of db.categories) {
+      const s = seed.categories.find((x) => x.id === c.id);
+      if (s && !c.parentId) c.order = s.order;
+    }
   }
   // версия 3: пример акции «3 = 2» и заполненный адвент-календарь
   if ((db.seedVersion ?? 1) < 3) {
     add(db.promotions, DEMO_PROMOTIONS());
     if (!hasAdvent(db)) db.promotions.push(...autoAdvent(db));
+  }
+  // версия 4: убрали из описания парфюмерии непроверенную цифру «Более 5000 ароматов» (если её не меняли в админке)
+  if ((db.seedVersion ?? 1) < 4) {
+    const c = db.categories.find((x) => x.id === "parfyumeriya");
+    if (c?.description.startsWith("Более 5000")) c.description = "Оригинальные ароматы: от культовой классики до редкой ниши.";
   }
   db.seedVersion = SEED_VERSION;
   return true;

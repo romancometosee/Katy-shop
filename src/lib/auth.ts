@@ -12,11 +12,13 @@ const hex = (b: ArrayBuffer | Uint8Array) => Array.from(b instanceof Uint8Array 
 const sha = async (s: string) => hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)));
 
 /** Секретный ключ сайта: из ADMIN_SECRET, иначе случайный, созданный один раз и сохранённый в данных */
+let cachedKey: string | undefined; // ключ не меняется — читаем данные один раз, а не на каждой странице
 export async function authKey(): Promise<string> {
   if (process.env.ADMIN_SECRET) return process.env.ADMIN_SECRET;
+  if (cachedKey) return cachedKey;
   const db = await getDb();
-  if (db.authKey) return db.authKey;
-  return updateDb((d) => (d.authKey ??= hex(crypto.getRandomValues(new Uint8Array(32)))));
+  cachedKey = db.authKey ?? (await updateDb((d) => (d.authKey ??= hex(crypto.getRandomValues(new Uint8Array(32))))));
+  return cachedKey;
 }
 
 async function pbkdf2(password: string, salt: string) {
