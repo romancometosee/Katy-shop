@@ -8,7 +8,9 @@ import { DISCOUNT_LEVELS, discountLevel, normPhone, totalSpend } from "@/lib/clu
 import { dateRu, rub } from "@/lib/format";
 import { toView } from "@/lib/catalog";
 import RepeatOrder from "@/components/RepeatOrder";
+import ProductImage from "@/components/ProductImage";
 import { proFor } from "@/lib/pro";
+import { lastsText, refills } from "@/lib/replenish";
 import type { CartLine } from "@/components/CartProvider";
 
 export const metadata = { title: "Личный кабинет", robots: { index: false } };
@@ -55,6 +57,14 @@ export default async function AccountPage() {
     }
     return { lines, missing };
   };
+
+  // «Пора пополнить»: шампунь, крем, база — то, что обычно заканчивается
+  const refill = refills(db, orders).map((r) => {
+    const p = toView(db, r.product);
+    const v = p.variants.find((x) => x.id === r.variantId)!;
+    const line: CartLine = { productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, qty: 1 };
+    return { ...r, p, line };
+  });
 
   return (
     <div className="container-x pt-8">
@@ -123,6 +133,24 @@ export default async function AccountPage() {
 
         {/* история покупок */}
         <div>
+          {refill.length > 0 && (
+            <div className="mb-10">
+              <p className="h-display text-3xl">Пора пополнить</p>
+              <p className="mb-4 mt-1 text-sm text-ink-soft">Судя по дате покупки, это может скоро закончиться. Добавьте в корзину заранее, чтобы не остаться без любимого.</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {refill.map((r) => (
+                  <div key={r.p.id} className="card flex items-center gap-4 p-4">
+                    <Link href={`/product/${r.p.slug}`} className="h-20 w-16 shrink-0 overflow-hidden rounded-xl"><ProductImage images={r.p.images.slice(0, 1)} art={r.p.art} /></Link>
+                    <div className="min-w-0 flex-1">
+                      <Link href={`/product/${r.p.slug}`} className="line-clamp-2 text-sm font-semibold hover:text-rose">{r.p.brandName} {r.p.name}</Link>
+                      <p className="mt-0.5 text-xs text-ink-soft">Куплено {dateRu(r.boughtAt)} · хватает {lastsText(r.days)}</p>
+                      <div className="mt-2 flex items-center gap-3"><span className="text-sm font-semibold">{rub(r.line.price)}</span><RepeatOrder lines={[r.line]} missing={0} label="В корзину" /></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="mb-4 flex items-baseline justify-between">
             <p className="h-display text-3xl">Мои заказы</p>
             <p className="text-sm text-ink-soft">{orders.length ? `Всего заказов: ${orders.length}` : ""}</p>
