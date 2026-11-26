@@ -1,11 +1,12 @@
 // Личный кабинет покупателя: вход по номеру телефона, сессия в подписанной cookie.
 import { cookies } from "next/headers";
 import { secret } from "./ai";
+import { authKey } from "./auth";
 
 export const CUSTOMER_COOKIE = "katy_customer";
 
 async function sign(value: string) {
-  const key = `${process.env.ADMIN_SECRET || "katy-secret"}:customer`;
+  const key = `${await authKey()}:customer`;
   const data = new TextEncoder().encode(`${key}:${value}`);
   const hash = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);

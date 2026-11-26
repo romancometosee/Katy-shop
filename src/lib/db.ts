@@ -81,6 +81,8 @@ export async function updateDb<T>(fn: (db: Database) => T | Promise<T>): Promise
 }
 
 export async function resetDb() {
-  const seed = withImages({ ...createSeed(), seedVersion: SEED_VERSION });
+  const old = await readDb();
+  // пароль админки и секретный ключ при сбросе демо-данных сохраняем
+  const seed = withImages({ ...createSeed(), seedVersion: SEED_VERSION, authKey: old?.authKey, adminPassword: old?.adminPassword });
   await writeDb(seed);
 }

@@ -2,6 +2,8 @@ import { Field, Notice, PageHead } from "@/components/admin/ui";
 import { getDb } from "@/lib/db";
 import { resetDemo, saveSettings } from "@/lib/admin-actions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
+import PasswordForm from "@/components/admin/PasswordForm";
+import { passwordKind } from "@/lib/auth";
 
 export default async function SettingsAdmin({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
   const { saved } = await searchParams;
@@ -13,6 +15,8 @@ export default async function SettingsAdmin({ searchParams }: { searchParams: Pr
     <div className="max-w-3xl">
       <PageHead title="Настройки магазина" />
       {saved && <Notice>Сохранено.</Notice>}
+      <PasswordForm weak={(await passwordKind()) === "default"} />
+      <div className="h-8" />
       <form action={saveSettings} className="card space-y-4 p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           {f("shopName", "Название магазина")}

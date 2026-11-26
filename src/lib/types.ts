@@ -216,6 +216,10 @@ export type Database = {
   /** Участники Клуба Katy */
   members?: ClubMember[];
   loginCodes?: LoginCode[];
+  /** секретный ключ для подписей входа (создаётся сам) */
+  authKey?: string;
+  /** свой пароль админки: только отпечаток */
+  adminPassword?: { salt: string; hash: string; changedAt: string };
   /** «Сообщить о поступлении»: кто ждёт товар */
   stockAlerts?: StockAlert[];
   /** Katy PRO: мастера и салоны */

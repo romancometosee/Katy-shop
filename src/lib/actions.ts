@@ -52,17 +52,21 @@ export async function quoteCartAction(items: { productId: string; variantId: str
   return quoteCart(db, priced);
 }
 
+const cut = (s: unknown, n: number) => (typeof s === "string" ? s.trim().slice(0, n) : "");
+
 export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> {
   const c = input.customer;
   if (!c.name?.trim() || !c.phone?.trim()) return { ok: false, error: "Укажите имя и телефон" };
-  if (!input.items.length) return { ok: false, error: "Корзина пуста" };
+  if (!Array.isArray(input.items) || !input.items.length) return { ok: false, error: "Корзина пуста" };
+  if (input.items.length > 100) return { ok: false, error: "Слишком много позиций в одном заказе — позвоните нам" };
+  if (!["courier", "pickup", "post"].includes(input.delivery)) return { ok: false, error: "Выберите способ доставки" };
   const session = await currentCustomer();
   const result = await updateDb((db) => {
     // Katy PRO: вошедший мастер покупает проф. товары по своей цене
     const pro = proFor(db, session);
     const items: Order["items"] = [];
     for (const it of input.items) {
-      const qty0 = Math.max(1, Math.min(20, Math.floor(it.qty)));
+      const qty0 = Math.max(1, Math.min(20, Math.floor(Number(it.qty)) || 1));
       const note = it.note?.trim().slice(0, 300) || undefined;
       // подарочный сертификат: сумму и дизайн проверяем на сервере
       if (it.productId === "gift-card") {
@@ -81,7 +85,7 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       const v = view?.variants.find((x) => x.id === it.variantId);
       const raw = p?.variants.find((x) => x.id === it.variantId);
       if (!p || !v || !raw) continue;
-      const qty = Math.max(1, Math.min(99, Math.floor(it.qty)));
+      const qty = Math.max(1, Math.min(99, Math.floor(Number(it.qty)) || 1));
       const asPro = pro && isProProduct(db, p);
       items.push({ productId: p.id, variantId: v.id, name: `${view!.brandName} ${p.name}`, variantLabel: v.label, price: asPro ? proPrice(raw.price, v.price, pro.discount) : v.price, qty, ...(asPro ? { pro: true } : {}) });
       raw.stock = Math.max(0, raw.stock - qty);
@@ -129,7 +133,7 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       number,
       createdAt: new Date().toISOString(),
       customer: {
-        name: c.name.trim(), phone: c.phone.trim(), email: c.email?.trim() ?? "", city: c.city?.trim() ?? "", address: c.address?.trim() ?? "", comment: c.comment?.trim() ?? "",
+        name: cut(c.name, 100), phone: cut(c.phone, 30), email: cut(c.email, 120), city: cut(c.city, 100), address: cut(c.address, 300), comment: cut(c.comment, 1000),
       },
       delivery: input.delivery,
       items,

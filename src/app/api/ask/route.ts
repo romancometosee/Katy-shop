@@ -13,9 +13,22 @@ export async function GET() {
   return Response.json({ enabled: Boolean(p), provider: p?.kind ?? null });
 }
 
+// Не больше 40 вопросов за 10 минут с одного адреса: каждый ответ нейросети стоит денег
+const hits = new Map<string, number[]>();
+function tooMany(req: Request) {
+  const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  const now = Date.now();
+  const list = (hits.get(ip) ?? []).filter((t) => now - t < 10 * 60000);
+  list.push(now);
+  hits.set(ip, list);
+  if (hits.size > 5000) hits.clear();
+  return list.length > 40;
+}
+
 export async function POST(req: Request) {
   const provider = await getAiProvider();
   if (!provider) return Response.json({ noKey: true }, { status: 503 });
+  if (tooMany(req)) return Response.json({ error: "Слишком много вопросов подряд. Передохните пару минут и спросите снова." }, { status: 429 });
 
   let body: { messages?: Msg[] };
   try {

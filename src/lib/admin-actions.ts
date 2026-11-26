@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { ADMIN_COOKIE, adminPassword, tokenFor } from "./auth";
+import { ADMIN_COOKIE, adminToken, checkAdminPassword, isAdmin, setAdminPassword } from "./auth";
 import { resetDb, updateDb } from "./db";
 import { saveUploads } from "./uploads";
 import { isExternal, mirrorImage } from "./mirror";
@@ -17,8 +17,7 @@ import type { Cell, Sheet } from "./xlsx";
 import type { ArtShape, Banner, Database, Gender, OrderStatus, Product, Promotion, PromotionKind, PromotionScope, Settings, Variant } from "./types";
 
 async function requireAdmin() {
-  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
-  if (!token || token !== (await tokenFor(adminPassword()))) redirect("/admin/login");
+  if (!(await isAdmin())) redirect("/admin/login");
 }
 
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -43,9 +42,39 @@ function uniqueSlug(base: string, taken: string[]) {
 
 // ---------- Вход ----------
 export async function login(_: unknown, fd: FormData) {
-  if (str(fd, "password") !== adminPassword()) return { error: "Неверный пароль" };
-  (await cookies()).set(ADMIN_COOKIE, await tokenFor(adminPassword()), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
+  // не больше 10 неверных паролей в час с одного адреса — подобрать пароль перебором не выйдет
+  const h = await headers();
+  const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  const key = `admin:${ip}`;
+  const now = Date.now();
+  const rec = (await getDb()).loginCodes?.find((c) => c.phone === key);
+  if (rec && rec.tries >= 10 && new Date(rec.expires).getTime() > now) return { error: "Слишком много попыток. Попробуйте через час." };
+  if (!(await checkAdminPassword(str(fd, "password")))) {
+    await updateDb((db) => {
+      db.loginCodes = (db.loginCodes ?? []).filter((c) => new Date(c.expires).getTime() > now);
+      let r = db.loginCodes.find((c) => c.phone === key);
+      if (!r) db.loginCodes.push((r = { phone: key, hash: "", expires: "", tries: 0, sentAt: [] }));
+      r.tries++;
+      r.expires = new Date(now + 3600000).toISOString();
+    });
+    return { error: "Неверный пароль" };
+  }
+  if (rec) await updateDb((db) => { db.loginCodes = (db.loginCodes ?? []).filter((c) => c.phone !== key); });
+  (await cookies()).set(ADMIN_COOKIE, await adminToken(), { httpOnly: true, secure: process.env.NODE_ENV === "production" && !h.get("host")?.startsWith("localhost"), sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
   redirect("/admin");
+}
+
+/** Смена пароля админки (в «Настройках») */
+export async function changeAdminPassword(_: unknown, fd: FormData): Promise<{ ok?: boolean; error?: string } | null> {
+  await requireAdmin();
+  const now = str(fd, "current"), next = str(fd, "next"), again = str(fd, "again");
+  if (!(await checkAdminPassword(now))) return { error: "Текущий пароль неверный" };
+  if (next.length < 8) return { error: "Новый пароль — не короче 8 знаков" };
+  if (next !== again) return { error: "Новый пароль и повтор не совпадают" };
+  if (/^(katy|12345|qwerty|password|пароль)/i.test(next)) return { error: "Слишком простой пароль — придумайте другой" };
+  await setAdminPassword(next);
+  (await cookies()).set(ADMIN_COOKIE, await adminToken(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
+  return { ok: true };
 }
 
 export async function logout() {

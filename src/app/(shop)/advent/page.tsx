@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ProductImage from "@/components/ProductImage";
 import PromoCountdown from "@/components/PromoCountdown";
 import { getDb } from "@/lib/db";
-import { ADMIN_COOKIE, adminPassword, tokenFor } from "@/lib/auth";
+import { isAdmin as checkAdmin } from "@/lib/auth";
 import { ADVENT_COLOR, adventDays, adventYear, moscowToday } from "@/lib/advent";
 import { rub } from "@/lib/format";
 
@@ -18,7 +17,7 @@ export default async function AdventPage({ searchParams }: { searchParams: Promi
   let today = t.y === year && t.m === 12 ? t.d : 0; // 0 — декабрь ещё не начался
   // предпросмотр любого дня — только для администратора
   const sp = await searchParams;
-  const isAdmin = (await cookies()).get(ADMIN_COOKIE)?.value === (await tokenFor(adminPassword()));
+  const isAdmin = await checkAdmin();
   const preview = isAdmin && sp.day ? Math.min(24, Math.max(1, Number(sp.day) || 1)) : 0;
   if (preview) today = preview;
   const brand = (id: string) => db.brands.find((b) => b.id === id)?.name ?? "";
