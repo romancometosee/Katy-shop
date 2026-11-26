@@ -44,6 +44,9 @@ export type Review = {
 
 export type Gender = "women" | "men" | "unisex";
 
+export type ScentVotes = { longevity: number[]; sillage: number[]; when: Record<string, number>; total: number };
+export const SCENT_WHEN = ["День", "Вечер", "Работа", "Свидание", "Весна", "Лето", "Осень", "Зима"] as const;
+
 export type Product = {
   id: string;
   slug: string;
@@ -60,6 +63,8 @@ export type Product = {
   // ароматы
   notes?: { top: string[]; heart: string[]; base: string[] };
   family?: string; // «цветочный», «древесный» …
+  /** оценки покупателей: стойкость и шлейф (сколько голосов за 1…5) и «когда носить» */
+  scentVotes?: ScentVotes;
   // уход / макияж
   skinType?: string[];
   tags: string[];

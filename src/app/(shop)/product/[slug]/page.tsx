@@ -12,6 +12,7 @@ import ProductRail from "@/components/ProductRail";
 import Section from "@/components/Section";
 import { StarIcon } from "@/components/Icons";
 import ShadeDots from "@/components/ShadeDots";
+import ScentVotes from "@/components/ScentVotes";
 import RecentlyViewed, { TrackView } from "@/components/RecentlyViewed";
 import { getDb } from "@/lib/db";
 import { genderLabel, routineFor, searchProducts, toView } from "@/lib/catalog";
@@ -141,6 +142,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="mt-8">
             <ProductBuy p={p} giftText={db.settings.giftText} freeDeliveryFrom={db.settings.freeDeliveryFrom} pro={pro} />
           </div>
+          {product.categoryId === "parfyumeriya" && !/набор|свеч|диффузор/i.test(product.name) && (
+            <div className="mt-8"><ScentVotes productId={product.id} initial={product.scentVotes} /></div>
+          )}
           <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
             {facts.map(([k, v]) => (
               <div key={k} className="border-b border-line pb-2">

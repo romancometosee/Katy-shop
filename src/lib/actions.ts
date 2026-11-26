@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { updateDb } from "./db";
 import { toView } from "./catalog";
-import type { Order } from "./types";
+import { SCENT_WHEN, type Order, type ScentVotes } from "./types";
+import { headers } from "next/headers";
 import { quoteCart, type CartQuote } from "./promo";
 import { isProProduct, proFor, proPrice, PRO_KINDS } from "./pro";
 import { currentCustomer } from "./customer";
@@ -243,4 +244,33 @@ export async function applyPro(input: { name: string; phone: string; kind: strin
     }
     return { ok: true as const, status: "pending" as const };
   });
+}
+
+/** Голос покупателя за стойкость, шлейф и «когда носить» аромата */
+const scentHits = new Map<string, number[]>();
+export async function voteScent(productId: string, vote: { longevity?: number; sillage?: number; when?: string[] }): Promise<ScentVotes | null> {
+  // не больше 20 голосов за час с одного адреса
+  const h = await headers();
+  const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  const now = Date.now();
+  const list = (scentHits.get(ip) ?? []).filter((t) => now - t < 3600000);
+  if (list.length >= 20) return null;
+  scentHits.set(ip, [...list, now]);
+  if (scentHits.size > 5000) scentHits.clear();
+  const ok = (n?: number) => (Number.isInteger(n) && n! >= 1 && n! <= 5 ? n! : undefined);
+  const lon = ok(vote.longevity), sil = ok(vote.sillage);
+  const when = (Array.isArray(vote.when) ? vote.when : []).filter((w) => (SCENT_WHEN as readonly string[]).includes(w)).slice(0, 4);
+  if (!lon && !sil && !when.length) return null;
+  const res = await updateDb((db) => {
+    const p = db.products.find((x) => x.id === productId);
+    if (!p || p.categoryId !== "parfyumeriya") return null;
+    const v = (p.scentVotes ??= { longevity: [0, 0, 0, 0, 0], sillage: [0, 0, 0, 0, 0], when: {}, total: 0 });
+    if (lon) v.longevity[lon - 1]++;
+    if (sil) v.sillage[sil - 1]++;
+    for (const w of when) v.when[w] = (v.when[w] ?? 0) + 1;
+    v.total++;
+    return structuredClone(v);
+  });
+  revalidatePath("/product/[slug]", "page");
+  return res;
 }
