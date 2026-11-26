@@ -33,6 +33,8 @@ export type CheckoutInput = {
   promoCode?: string;
   /** пробник в подарок, который выбрал покупатель */
   sample?: string;
+  /** магазин для самовывоза (номер в списке магазинов) */
+  store?: number;
 };
 
 export type CheckoutResult = { ok: true; number: number } | { ok: false; error: string };
@@ -144,6 +146,7 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
         name: cut(c.name, 100), phone: cut(c.phone, 30), email: cut(c.email, 120), city: cut(c.city, 100), address: cut(c.address, 300), comment: cut(c.comment, 1000),
       },
       delivery: input.delivery,
+      ...(input.delivery === "pickup" ? { customer: { ...pickupCustomer(c, db.settings.stores, input.store) } } : {}),
       items,
       subtotal,
       discount,
@@ -280,4 +283,12 @@ export async function voteScent(productId: string, vote: { longevity?: number; s
   });
   revalidatePath("/product/[slug]", "page");
   return res;
+}
+
+function pickupCustomer(c: Order["customer"], stores: { name: string; address: string }[] | undefined, i: number | undefined) {
+  const st = typeof i === "number" ? stores?.[i] : undefined;
+  return {
+    name: cut(c.name, 100), phone: cut(c.phone, 30), email: cut(c.email, 120), comment: cut(c.comment, 1000),
+    city: "", address: st ? `Самовывоз: ${st.name}, ${st.address}` : "Самовывоз",
+  };
 }

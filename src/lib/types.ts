@@ -209,7 +209,11 @@ export type Settings = {
   giftText: string;
   /** Katy PRO: разделы, на которые действуют цены для мастеров (по умолчанию ногти и волосы) */
   proCategories?: string[];
+  /** Магазины Katy: самовывоз и страница «Магазины» */
+  stores?: Store[];
 };
+
+export type Store = { name: string; address: string; hours?: string; phone?: string };
 
 export type Database = {
   settings: Settings;

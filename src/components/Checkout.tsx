@@ -9,10 +9,11 @@ import { checkPromoCode, loyaltyForPhone, placeOrder, proPricesAction } from "@/
 import PromoHints from "./PromoHints";
 import { useCartQuote } from "./useCartQuote";
 
-type Props = { freeDeliveryFrom: number; deliveryPrice: number; giftText: string; mode: "cart" | "checkout"; samples?: string[] };
+type Props = { freeDeliveryFrom: number; deliveryPrice: number; giftText: string; mode: "cart" | "checkout"; samples?: string[]; stores?: { name: string; address: string; hours?: string }[] };
 const SAMPLE_ANY = "Пусть выберет консультант";
 
-export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mode, samples = [] }: Props) {
+export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mode, samples = [], stores = [] }: Props) {
+  const [store, setStore] = useState(0);
   const [sample, setSample] = useState(SAMPLE_ANY);
   const { lines: cartLines, setQty, remove, clear } = useCart();
   // Katy PRO: для вошедшего мастера цены проф. товаров — его собственные (сервер посчитает так же)
@@ -93,6 +94,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
         delivery,
         promoCode: applied?.code,
         sample: samples.length ? sample : undefined,
+        store: delivery === "pickup" && stores.length ? store : undefined,
       });
       if (r.ok) { clear(); setDone(r.number); window.scrollTo({ top: 0 }); }
       else setError(r.error);
@@ -175,6 +177,21 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
                 </label>
               ))}
             </div>
+            {delivery === "pickup" && (
+              stores.length ? (
+                <div className="mt-3 grid gap-2">
+                  {stores.map((st, i) => (
+                    <label key={i} className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 text-sm transition ${store === i ? "border-ink bg-sand" : "border-line"}`}>
+                      <input type="radio" name="store" className="mt-1" checked={store === i} onChange={() => setStore(i)} />
+                      <span><span className="block font-semibold">{st.name}</span><span className="text-ink-soft">{st.address}{st.hours ? ` · ${st.hours}` : ""}</span></span>
+                    </label>
+                  ))}
+                  <p className="text-xs text-ink-soft">Соберём заказ и позвоним, когда он будет ждать вас в магазине.</p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-ink-soft">Адрес магазина и время, когда можно забрать заказ, менеджер сообщит при подтверждении.</p>
+              )
+            )}
             {delivery !== "pickup" && (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <input name="city" placeholder="Город" className="input" />

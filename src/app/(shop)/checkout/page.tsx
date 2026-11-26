@@ -20,7 +20,7 @@ export default async function Page() {
     <div className="container-x pt-8">
       <Breadcrumbs items={[{ name: "Оформление заказа" }]} />
       <h1 className="h-display mb-8 mt-6 text-5xl">Оформление заказа</h1>
-      <Checkout mode="checkout" freeDeliveryFrom={s.freeDeliveryFrom} deliveryPrice={s.deliveryPrice} giftText={s.giftText} samples={samples} />
+      <Checkout mode="checkout" freeDeliveryFrom={s.freeDeliveryFrom} deliveryPrice={s.deliveryPrice} giftText={s.giftText} samples={samples} stores={s.stores ?? []} />
     </div>
   );
 }

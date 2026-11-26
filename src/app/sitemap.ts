@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const top = cats.filter((c) => !c.parentId);
   return [
     u("/", 1, "daily"),
-    ...["/sale", "/brands", "/club", "/gift", "/podbor", "/journal", "/delivery", "/about", "/advent"].map((p) => u(p, 0.6)),
+    ...["/sale", "/brands", "/club", "/gift", "/podbor", "/journal", "/delivery", "/stores", "/about", "/advent"].map((p) => u(p, 0.6)),
     ...top.map((c) => u(`/catalog/${c.slug}`, 0.9, "daily")),
     ...cats.filter((c) => c.parentId).map((c) => { const parent = cats.find((p) => p.id === c.parentId); return parent ? u(`/catalog/${parent.slug}/${c.slug}`, 0.8, "daily") : null; }).filter(Boolean) as MetadataRoute.Sitemap,
     ...db.products.filter((p) => p.isActive).map((p) => u(`/product/${p.slug}`, 0.7, "weekly", p.createdAt)),

@@ -30,6 +30,9 @@ export default async function SettingsAdmin({ searchParams }: { searchParams: Pr
         </div>
         {f("announcement", "Бегущая строка сверху", "Фразы разделяйте знаком «·»")}
         {f("giftText", "Подарок в каждом заказе")}
+        <Field label="Магазины (для самовывоза и страницы «Магазины»)" hint="Каждый магазин с новой строки: Название | Адрес | Часы работы | Телефон. Например: Katy на Ленина | Москва, ул. Ленина, 1 | ежедневно 10–21 | +7 900 000-00-00">
+          <textarea name="stores" rows={4} className="input font-mono text-xs" defaultValue={(s.stores ?? []).map((x) => [x.name, x.address, x.hours ?? "", x.phone ?? ""].join(" | ").replace(/( \| )+$/, "")).join("\n")} />
+        </Field>
         <button className="btn-dark">Сохранить</button>
       </form>
       <form action={resetDemo} className="mt-10 rounded-3xl border border-rose/30 p-6">
