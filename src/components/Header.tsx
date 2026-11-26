@@ -133,6 +133,9 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
               <Link href="/podbor" className="block border-b-2 border-transparent py-3 hover:border-ink/30">Подбор аромата</Link>
             </li>
             <li onMouseEnter={() => setOpen(null)}>
+              <Link href="/raspiv" className="block border-b-2 border-transparent py-3 hover:border-ink/30">Распив</Link>
+            </li>
+            <li onMouseEnter={() => setOpen(null)}>
               <Link href="/sale" className="block border-b-2 border-transparent py-3 text-rose hover:border-rose/40">Акции</Link>
             </li>
           </ul>
@@ -224,7 +227,7 @@ export default function Header({ shopName, announcement, nav }: { shopName: stri
                   )}
                 </li>
               ))}
-              {[["Бренды", "/brands"], ["Подбор аромата", "/podbor"], ["Акции", "/sale"], ["Личный кабинет", "/account"], ["Доставка и оплата", "/delivery"]].map(([n, h]) => (
+              {[["Бренды", "/brands"], ["Подбор аромата", "/podbor"], ["Распив 10 мл", "/raspiv"], ["Акции", "/sale"], ["Личный кабинет", "/account"], ["Доставка и оплата", "/delivery"]].map(([n, h]) => (
                 <li key={h} className="border-b border-line">
                   <Link href={h} onClick={() => setMobile(false)} className="block px-2 py-4 font-semibold">{n}</Link>
                 </li>

@@ -4,6 +4,7 @@ import TitleScreen from "@/components/TitleScreen";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import Section from "@/components/Section";
 import ProductRail from "@/components/ProductRail";
+import RailTabs from "@/components/RailTabs";
 import ProductArt from "@/components/ProductArt";
 import PhotoFan from "@/components/PhotoFan";
 import { categoryImages, quizImages } from "@/lib/productImages";
@@ -12,7 +13,7 @@ import { promoHeadline } from "@/lib/promo";
 import AdventTeaser from "@/components/AdventTeaser";
 import { GiftIcon, ShieldIcon, SparkIcon, TruckIcon, ChevronRight, StarIcon } from "@/components/Icons";
 import { getDb } from "@/lib/db";
-import { isPromotionLive, searchProducts, topCategories } from "@/lib/catalog";
+import { isDecant, isPromotionLive, searchProducts, topCategories } from "@/lib/catalog";
 import { rub, plural } from "@/lib/format";
 import JournalCard from "@/components/JournalCard";
 import { articles } from "@/lib/journal";
@@ -44,6 +45,7 @@ export default async function HomePage() {
   const promos = db.promotions.filter((p) => isPromotionLive(p) && !p.dayDeal);
   const popularBrands = db.brands.filter((b) => b.isPopular).slice(0, 12);
   const s = db.settings;
+  const decantCount = db.products.filter((p) => p.isActive && p.variants.some((v) => isDecant(v.label) && v.stock > 0)).length;
 
   return (
     <>
@@ -69,16 +71,16 @@ export default async function HomePage() {
 
       {/* разделы */}
       <Section title="Каталог" kicker="Разделы магазина">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
+        <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-4 md:gap-4 md:overflow-visible md:px-0 lg:grid-cols-7">
           {cats.map((c) => (
-            <Link key={c.id} href={`/catalog/${c.slug}`} className="group relative flex aspect-[3/4] flex-col overflow-hidden rounded-3xl" style={{ background: c.art.bg }}>
+            <Link key={c.id} href={`/catalog/${c.slug}`} className="group relative flex aspect-[3/4] w-[38vw] shrink-0 snap-start flex-col overflow-hidden rounded-3xl md:w-auto" style={{ background: c.art.bg }}>
               {categoryImages[c.slug]?.length ? (
                 <PhotoFan images={categoryImages[c.slug]} className="mx-3 mt-5 h-[58%]" />
               ) : (
                 <ProductArt {...c.art} withBg={false} className="mx-auto mt-4 h-[62%] transition duration-500 group-hover:-translate-y-1 group-hover:scale-105" />
               )}
               <div className="mt-auto p-4">
-                <p className="h-display text-2xl leading-tight">{c.name}</p>
+                <p className="h-display text-xl leading-tight sm:text-2xl">{c.name}</p>
                 <p className="mt-1 flex items-center text-xs font-semibold text-ink-soft">
                   {(() => { const k = db.products.filter((p) => p.categoryId === c.id && p.isActive).length; return `${k} ${plural(k, "товар", "товара", "товаров")}`; })()} <ChevronRight className="h-3.5 w-3.5" />
                 </p>
@@ -101,22 +103,23 @@ export default async function HomePage() {
         <ProductRail products={hits} />
       </Section>
 
-      {/* акции */}
+      {/* акции — компактная лента: сколько акций заведено, столько и карточек */}
       {promos.length > 0 && (
-        <Section title="Акции недели" kicker="Успейте купить" href="/sale" linkText="Все акции">
-          <div className="grid gap-4 md:grid-cols-2">
+        <Section title="Акции" kicker="Успейте купить" href="/sale" linkText="Все акции">
+          <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
             {promos.map((p) => (
-              <Link key={p.id} href={`/sale/${p.slug}`} className="group relative flex min-h-56 flex-col justify-between overflow-hidden rounded-3xl p-8 text-white" style={{ background: p.color }}>
-                <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/10 transition group-hover:scale-110" />
-                <div className="absolute -bottom-16 right-20 h-40 w-40 rounded-full bg-white/5" />
-                <div className="relative">
-                  <p className="h-display text-6xl">{promoHeadline(p)}</p>
-                  <p className="mt-2 text-2xl font-semibold">{p.title}</p>
-                  <p className="mt-1 text-white/75">{p.subtitle}</p>
+              <Link key={p.id} href={`/sale/${p.slug}`} className="group relative flex w-[78%] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-3xl p-5 text-white sm:w-auto" style={{ background: p.color }}>
+                <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 transition group-hover:scale-110" />
+                <div className="relative flex items-baseline gap-3">
+                  <p className="h-display shrink-0 text-4xl">{promoHeadline(p)}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold leading-tight">{p.title}</p>
+                    {p.subtitle && <p className="line-clamp-1 text-sm text-white/75">{p.subtitle}</p>}
+                  </div>
                 </div>
-                <div className="relative mt-6 flex items-center justify-between">
+                <div className="relative mt-4 flex items-center justify-between text-sm">
                   <PromoCountdown endsAt={p.endsAt} />
-                  <span className="flex items-center gap-1 text-sm font-semibold">Смотреть <ChevronRight className="h-4 w-4" /></span>
+                  <span className="hidden items-center gap-1 font-semibold sm:flex">Смотреть <ChevronRight className="h-4 w-4" /></span>
                 </div>
               </Link>
             ))}
@@ -130,31 +133,40 @@ export default async function HomePage() {
         <ProductRail products={news} />
       </Section>
 
-      {/* подбор аромата */}
-      <section className="container-x mt-20">
-        <div className="relative overflow-hidden rounded-[2rem] bg-blush px-8 py-14 sm:px-14 lg:flex lg:items-center lg:justify-between">
-          <div className="relative z-10 max-w-xl">
-            <p className="text-xs font-semibold uppercase tracking-[.25em] text-rose">Персональный подбор</p>
-            <h2 className="h-display mt-3 text-4xl sm:text-5xl">Не знаете, какой аромат выбрать?</h2>
-            <p className="mt-4 text-ink-soft">Ответьте на 4 простых вопроса — мы подберём ароматы под ваш характер, сезон и любимые ноты. А в заказ положим пробники, чтобы вы точно не ошиблись.</p>
-            <Link href="/podbor" className="btn-dark mt-8">Подобрать аромат</Link>
+      {/* распив и подбор аромата — компактно, в одну строку */}
+      <section className="container-x reveal mt-16 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Link href="/raspiv" className="group relative flex min-w-0 items-center gap-5 overflow-hidden rounded-[2rem] bg-[#2a2220] p-6 text-cream sm:p-8">
+          <span aria-hidden className="relative grid h-24 w-14 shrink-0 place-items-end rounded-b-2xl rounded-t-md border-2 border-[#e8c98f]/70 pb-1 transition duration-500 group-hover:-translate-y-1">
+            <span className="absolute -top-3 h-3 w-6 rounded-t-md bg-[#e8c98f]/80" />
+            <span className="h-[55%] w-[86%] rounded-b-xl bg-gradient-to-t from-[#e8c98f] to-[#e8c98f]/40" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[.25em] text-[#e8c98f]">Распив · {decantCount} {plural(decantCount, "аромат", "аромата", "ароматов")}</p>
+            <p className="h-display mt-2 text-3xl leading-tight sm:text-4xl">Ниша от 10 мл</p>
+            <p className="mt-2 text-sm text-white/75">Разливаем оригинал из флакона в атомайзер 8–10 мл. Попробуйте дорогой аромат, не покупая большой флакон.</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#e8c98f]">Смотреть распив <ChevronRight className="h-4 w-4" /></span>
           </div>
-          <Link href="/podbor" aria-label="Подобрать аромат" className="group mt-10 block h-64 w-full max-w-md sm:h-80 lg:mt-0">
-            <PhotoFan images={quizImages} className="h-full w-full" />
-          </Link>
+        </Link>
+        <div className="flex min-w-0 flex-col justify-between gap-4 rounded-[2rem] bg-blush p-6 sm:p-8">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.25em] text-rose">Персональный подбор</p>
+              <p className="h-display mt-2 text-3xl leading-tight sm:text-4xl">Не знаете, какой аромат выбрать?</p>
+              <p className="mt-2 text-sm text-ink-soft">4 простых вопроса — и подборка ароматов под вас.</p>
+            </div>
+            <Link href="/podbor" aria-label="Подобрать аромат" className="hidden h-24 w-24 shrink-0 sm:block"><PhotoFan images={quizImages} className="h-full w-full" /></Link>
+          </div>
+          <div>
+            <Link href="/podbor" className="btn-dark">Подобрать аромат</Link>
+            <p className="mt-4 text-xs font-semibold uppercase tracking-[.2em] text-ink-soft">Или по любимой ноте</p>
+            <div className="no-scrollbar -mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1">
+              {notes.map((n) => (
+                <Link key={n.name} href={`/search?q=${encodeURIComponent(n.name.toLowerCase())}`} className="shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition hover:shadow-md" style={{ background: n.color }}>{n.name}</Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
-
-      {/* ноты */}
-      <Section title="Ароматы по нотам" kicker="Найдите свой любимый аккорд">
-        <div className="flex flex-wrap gap-3">
-          {notes.map((n) => (
-            <Link key={n.name} href={`/search?q=${encodeURIComponent(n.name.toLowerCase())}`} className="rounded-full px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5 hover:shadow-md" style={{ background: n.color }}>
-              {n.name}
-            </Link>
-          ))}
-        </div>
-      </Section>
 
       {sale.length > 0 && (
         <Section title="Выгодно сейчас" kicker="Скидки" href="/sale">
@@ -162,40 +174,33 @@ export default async function HomePage() {
         </Section>
       )}
 
-      {nails.length > 0 && (
-        <Section title="Ногти" kicker="Гель-лаки, базы и уход" href="/catalog/nogti">
-          <ProductRail products={nails} />
-        </Section>
-      )}
-
-      {hair.length > 0 && (
-        <Section title="Уход за волосами" kicker="Шампуни, бальзамы, маски и масла" href="/catalog/volosy">
-          <ProductRail products={hair} />
-        </Section>
-      )}
-
-      <Section title="Нишевая парфюмерия" kicker="Для ценителей" href="/catalog/parfyumeriya/nishevaya">
-        <ProductRail products={niche} />
+      {/* ногти, волосы, ниша — одним блоком с вкладками, чтобы главная была короче */}
+      <Section title="Популярное в разделах" kicker="Не только парфюмерия">
+        <RailTabs tabs={[
+          { label: "Ногти", href: "/catalog/nogti", products: nails },
+          { label: "Волосы", href: "/catalog/volosy", products: hair },
+          { label: "Нишевая парфюмерия", href: "/catalog/parfyumeriya/nishevaya", products: niche },
+        ]} />
       </Section>
 
       {/* клуб и подарки */}
-      <section className="container-x reveal mt-20 grid gap-4 md:grid-cols-2">
-        <Link href="/club" className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1c1917] to-[#3a2e2a] p-8 text-[#e8c98f] sm:p-10">
+      <section className="container-x reveal mt-16 grid gap-4 md:grid-cols-2">
+        <Link href="/club" className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#1c1917] to-[#3a2e2a] p-6 text-[#e8c98f] sm:p-8">
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-[#e8c98f]/15 blur-3xl transition duration-700 group-hover:scale-125" />
           <p className="text-xs font-semibold uppercase tracking-[.28em] opacity-70">Программа лояльности</p>
-          <p className="h-display mt-3 text-4xl sm:text-5xl">Клуб Katy</p>
+          <p className="h-display mt-2 text-3xl sm:text-4xl">Клуб Katy</p>
           <p className="mt-3 max-w-sm text-white/80">Накопительная скидка до 10%, которая растёт с каждой покупкой, и подарок на день рождения.</p>
-          <span className="mt-6 inline-flex rounded-full bg-[#e8c98f] px-6 py-3 text-sm font-semibold text-ink transition group-hover:bg-white">Вступить в клуб</span>
+          <span className="mt-4 inline-flex rounded-full bg-[#e8c98f] px-5 py-2.5 text-sm font-semibold text-ink transition group-hover:bg-white">Вступить в клуб</span>
         </Link>
-        <Link href="/gift" className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#f6d5d9] to-[#f9ece4] p-8 sm:p-10">
-          <div className="absolute -bottom-6 right-6 hidden aspect-[1.6/1] w-56 rotate-[-8deg] rounded-2xl bg-gradient-to-br from-[#7a1f2b] to-[#b8475a] p-4 text-[#fff4e0] shadow-2xl transition duration-500 group-hover:rotate-[-3deg] sm:block">
+        <Link href="/gift" className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#f6d5d9] to-[#f9ece4] p-6 sm:p-8">
+          <div className="absolute -bottom-6 right-6 hidden aspect-[1.6/1] w-48 rotate-[-8deg] rounded-2xl bg-gradient-to-br from-[#7a1f2b] to-[#b8475a] p-4 text-[#fff4e0] shadow-2xl transition duration-500 group-hover:rotate-[-3deg] sm:block">
             <p className="h-display text-xl tracking-[.3em]">KATY</p>
             <p className="h-display absolute bottom-4 left-4 text-3xl">5 000 ₽</p>
           </div>
           <p className="text-xs font-semibold uppercase tracking-[.28em] text-rose">Подарки</p>
-          <p className="h-display mt-3 text-4xl sm:text-5xl">Сертификат<br />или подарок</p>
+          <p className="h-display mt-2 text-3xl sm:text-4xl">Сертификат<br />или подарок</p>
           <p className="mt-3 max-w-xs text-ink-soft">Сертификат на любую сумму с пожеланием или подарок, собранный своими руками.</p>
-          <span className="mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white">Выбрать подарок</span>
+          <span className="mt-4 inline-flex rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white">Выбрать подарок</span>
         </Link>
       </section>
 
