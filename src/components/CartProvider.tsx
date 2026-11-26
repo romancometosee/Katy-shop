@@ -16,6 +16,8 @@ export type CartLine = {
   qty: number;
   /** пожелание к сертификату или подарку */
   note?: string;
+  /** сколько есть в наличии — больше в корзину не положить */
+  max?: number;
 };
 
 type Ctx = {
@@ -79,13 +81,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       add: (line, qty = 1) => {
         setLines((prev) => {
           const found = prev.find((l) => l.variantId === line.variantId);
-          if (found) return prev.map((l) => (l.variantId === line.variantId ? { ...l, ...line, qty: l.qty + qty } : l));
-          return [...prev, { ...line, qty }];
+          const cap = (n: number) => (line.max != null && line.max > 0 ? Math.min(n, line.max) : n);
+          if (found) return prev.map((l) => (l.variantId === line.variantId ? { ...l, ...line, qty: cap(l.qty + qty) } : l));
+          return [...prev, { ...line, qty: cap(qty) }];
         });
         setToast({ line, qty, id: Date.now() });
       },
       setQty: (variantId, qty) =>
-        setLines((prev) => (qty <= 0 ? prev.filter((l) => l.variantId !== variantId) : prev.map((l) => (l.variantId === variantId ? { ...l, qty } : l)))),
+        setLines((prev) => (qty <= 0 ? prev.filter((l) => l.variantId !== variantId) : prev.map((l) => (l.variantId === variantId ? { ...l, qty: l.max != null && l.max > 0 ? Math.min(qty, l.max) : qty } : l)))),
       remove: (variantId) => setLines((prev) => prev.filter((l) => l.variantId !== variantId)),
       clear: () => setLines([]),
       favorites,

@@ -26,6 +26,8 @@ export type Variant = {
   price: number; // цена в рублях
   oldPrice?: number; // зачёркнутая цена
   stock: number;
+  /** остаток по магазинам: { "Тверская": 3, … } — из выгрузки склада; stock = сумма */
+  stores?: Record<string, number>;
   /** артикул из кассы / 1С — по нему узнаём товар при загрузке из Excel */
   sku?: string;
   barcode?: string;

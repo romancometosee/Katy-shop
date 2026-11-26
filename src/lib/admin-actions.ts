@@ -105,12 +105,18 @@ async function sendArrivalSms(list: Arrival[]) {
 }
 
 // ---------- Товары ----------
+/** остатки по магазинам оставляем, только если общий остаток в админке не меняли вручную */
+function keepStores(v: Variant) {
+  if (!v.stores || typeof v.stores !== "object") return undefined;
+  const clean = Object.fromEntries(Object.entries(v.stores).filter(([, n]) => Number.isFinite(n) && n >= 0).map(([k, n]) => [String(k).slice(0, 80), Math.round(n)]));
+  return Object.values(clean).reduce((a, b) => a + b, 0) === Math.round(v.stock || 0) ? clean : undefined;
+}
 export async function saveProduct(fd: FormData) {
   await requireAdmin();
   const id = str(fd, "id");
   const variants = (JSON.parse(str(fd, "variants") || "[]") as Variant[])
     .filter((v) => v.label && v.price > 0)
-    .map((v) => ({ id: v.id || crypto.randomUUID(), label: v.label, price: Math.round(v.price), oldPrice: v.oldPrice ? Math.round(v.oldPrice) : undefined, stock: Math.max(0, Math.round(v.stock || 0)), sku: v.sku?.trim() || undefined, barcode: v.barcode || undefined }));
+    .map((v) => ({ id: v.id || crypto.randomUUID(), label: v.label, price: Math.round(v.price), oldPrice: v.oldPrice ? Math.round(v.oldPrice) : undefined, stock: Math.max(0, Math.round(v.stock || 0)), sku: v.sku?.trim() || undefined, barcode: v.barcode || undefined, stores: keepStores(v) }));
   const keptImages = JSON.parse(str(fd, "images") || "[]") as string[];
   const uploaded = await saveUploads(fd.getAll("upload") as File[]);
   let imageUrl = str(fd, "imageUrl");

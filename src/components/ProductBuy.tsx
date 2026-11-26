@@ -34,8 +34,10 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: 
     else delete document.documentElement.dataset.buybar;
     return () => { delete document.documentElement.dataset.buybar; };
   }, [bar]);
+  // нельзя выбрать больше, чем есть; при смене объёма количество подстраивается
+  useEffect(() => { if (v0 && v0.stock > 0 && qty > v0.stock) setQty(v0.stock); }, [v0, qty]);
   if (!v) return null;
-  const addNow = () => add({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art }, qty);
+  const addNow = () => add({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, max: v.stock }, qty);
 
   return (
     <div>
@@ -83,7 +85,7 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: 
         <div className="flex items-center rounded-full border border-line bg-white">
           <button className="p-3" onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Меньше"><MinusIcon className="h-4 w-4" /></button>
           <span className="w-6 text-center">{qty}</span>
-          <button className="p-3" onClick={() => setQty(qty + 1)} aria-label="Больше"><PlusIcon className="h-4 w-4" /></button>
+          <button className="p-3 disabled:opacity-30" disabled={v.stock > 0 && qty >= v.stock} onClick={() => setQty(Math.min(qty + 1, Math.max(1, v.stock)))} aria-label="Больше"><PlusIcon className="h-4 w-4" /></button>
         </div>
         <button
           disabled={v.stock <= 0}
@@ -96,6 +98,21 @@ export default function ProductBuy({ p, giftText, freeDeliveryFrom, pro }: { p: 
           <HeartIcon className={`h-5 w-5 ${fav ? "fill-current" : ""}`} />
         </button>
       </div>
+      {v.stock > 0 && v.stock <= 3 && <p className="mt-2 text-sm text-rose">Осталось {v.stock} шт.{qty >= v.stock ? " Это всё, что есть" : ""}</p>}
+      {v.stores && Object.keys(v.stores).length > 0 && (
+        <div className="mt-4 rounded-2xl border border-line bg-white px-4 py-3 text-sm">
+          <p className="mb-1.5 font-semibold">Наличие в магазинах</p>
+          <ul className="space-y-1">
+            {Object.entries(v.stores).map(([name, n]) => (
+              <li key={name} className="flex items-center justify-between gap-3">
+                <span>{name}</span>
+                <span className={n > 3 ? "text-emerald-700" : n > 0 ? "text-amber-700" : "text-ink-soft"}>{n > 3 ? "в наличии" : n > 0 ? `осталось ${n} шт.` : "нет"}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1.5 text-xs text-ink-soft">Можно забрать бесплатно — выберите «Самовывоз» при оформлении.</p>
+        </div>
+      )}
       {v.stock <= 0 && <StockAlertForm key={v.id} productId={p.id} variantId={v.id} label={p.variants.length > 1 ? `${p.name}, ${v.label}` : p.name} />}
 
       {/* закреплённая кнопка внизу экрана (только телефон и планшет) */}

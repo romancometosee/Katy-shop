@@ -113,6 +113,8 @@ export default function ExcelImport() {
         <a href="/primer-tovary-katy.xlsx" download className="text-sm underline">Скачать образец таблицы</a>
       </div>
 
+      <p className="rounded-2xl bg-sand px-5 py-3 text-sm">Остатки по магазинам: сделайте в таблице отдельный столбец на каждый магазин — «Остаток: Тверская», «Остаток: Атриум» и т. д. Сайт сложит их в общий остаток и покажет на товаре, в каком магазине он есть.</p>
+
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" className="mt-1" checked={onlyPriceStock} onChange={(e) => { setOnly(e.target.checked); if (file) check(file.rows, e.target.checked); }} />
         <span>У товаров, которые уже есть на сайте, менять <b>только цену и остаток</b><br /><span className="text-ink-soft">Описания, фото и разделы, поправленные в админке, останутся как есть. Снимите галочку, если хотите обновить из таблицы всё.</span></span>

@@ -212,7 +212,7 @@ function BoxBuilder({ products }: { products: ProductView[] }) {
             onClick={() => {
               chosen.forEach((p) => {
                 const v = cheapest(p);
-                add({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art });
+                add({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, max: v.stock });
               });
               add({ productId: GIFT_BOX.id, variantId: `box-${box.id}-${rand()}`, slug: "/gift?tab=box", name: "Подарочная упаковка", brandName: "Katy", variantLabel: box.name, price: GIFT_BOX.price, art: { ...giftArt, bg: box.color }, note: card.trim() || undefined });
               setPicked([]);

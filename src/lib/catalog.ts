@@ -8,6 +8,8 @@ export type PricedVariant = {
   price: number; // итоговая цена
   oldPrice?: number; // цена до скидки
   stock: number;
+  /** наличие по магазинам */
+  stores?: Record<string, number>;
 };
 
 export type ProductView = {
@@ -98,9 +100,9 @@ export function toView(db: Database, product: Product): ProductView {
   const variants: PricedVariant[] = product.variants.map((v) => {
     if (pct > 0) {
       const price = Math.round((v.price * (100 - pct)) / 100 / 10) * 10;
-      return { id: v.id, label: v.label, price, oldPrice: v.oldPrice && v.oldPrice > v.price ? v.oldPrice : v.price, stock: v.stock };
+      return { id: v.id, label: v.label, price, oldPrice: v.oldPrice && v.oldPrice > v.price ? v.oldPrice : v.price, stock: v.stock, stores: v.stores };
     }
-    return { id: v.id, label: v.label, price: v.price, oldPrice: v.oldPrice && v.oldPrice > v.price ? v.oldPrice : undefined, stock: v.stock };
+    return { id: v.id, label: v.label, price: v.price, oldPrice: v.oldPrice && v.oldPrice > v.price ? v.oldPrice : undefined, stock: v.stock, stores: v.stores };
   });
   const cheapest = [...variants].sort((a, b) => a.price - b.price)[0];
   const ownDiscount = cheapest?.oldPrice ? Math.round((1 - cheapest.price / cheapest.oldPrice) * 100) : 0;

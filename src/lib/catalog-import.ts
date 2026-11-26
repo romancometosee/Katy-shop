@@ -80,16 +80,28 @@ function parseNotes(s: string): Product["notes"] | undefined {
 const photoOk = (s: string) => /^https?:\/\//i.test(s) || s.startsWith("/");
 
 /** Находит строку заголовков (в первых 10 строках) и номера столбцов */
+/** Столбец остатка по магазину: «Остаток: Тверская», «Остаток Тверская», «Магазин Атриум», «Наличие (ТЦ Европа)» */
+function storeColumn(h: string): string | null {
+  const m = /^(остаток|остатки|наличие|склад|магазин)\s*[:\-—–(,]?\s*(.+?)\)?\s*$/i.exec(h);
+  if (!m) return null;
+  const name = m[2].replace(/[*]/g, "").replace(/\b(шт|штук)\.?/gi, "").replace(/^[\s,:—–-]+|[\s,:—–-]+$/g, "").trim();
+  return name && !/^(на складе|склад|всего|итого|общий|общ|в наличии|шт)$/i.test(name) ? name : null;
+}
+
 function findColumns(rows: Cell[][]) {
   for (let r = 0; r < Math.min(rows.length, 10); r++) {
     const map: Partial<Record<Key, number>> = {};
+    const stores: { name: string; i: number }[] = [];
     (rows[r] ?? []).forEach((c, i) => {
-      const h = norm(text(c)).replace(/[*:]/g, "").trim();
+      const raw = text(c).replace(/[*]/g, "").trim();
+      const h = norm(raw).replace(/[*:]/g, "").trim();
       if (!h) return;
+      const st = storeColumn(raw);
+      if (st) { stores.push({ name: st, i }); return; }
       const hit = MATCH.find(([k, re]) => map[k] === undefined && re.test(h));
       if (hit) map[hit[0]] = i;
     });
-    if (map.sku !== undefined && (map.price !== undefined || map.stock !== undefined)) return { header: r, map };
+    if (map.sku !== undefined && (map.price !== undefined || map.stock !== undefined || stores.length)) return { header: r, map, stores };
   }
   return null;
 }
@@ -107,9 +119,9 @@ export function runImport(db: Database, rows: Cell[][], onlyPriceStock: boolean)
   const res: ImportResult = { rows: [], counts: { new: 0, variant: 0, upd: 0, same: 0, err: 0 }, newProducts: 0, newBrands: [], missingColumns: [] };
   const found = findColumns(rows);
   if (!found) throw new Error("В таблице не нашлись столбцы «Артикул» и «Цена» / «Остаток». Проверьте первую строку с заголовками или скачайте образец.");
-  const { header, map } = found;
+  const { header, map, stores: storeCols } = found;
   const LABEL: Partial<Record<Key, string>> = { brand: "Бренд", name: "Название", cat: "Раздел", label: "Объём / оттенок", price: "Цена", stock: "Остаток" };
-  res.missingColumns = (Object.keys(LABEL) as Key[]).filter((k) => map[k] === undefined).map((k) => LABEL[k]!);
+  res.missingColumns = (Object.keys(LABEL) as Key[]).filter((k) => map[k] === undefined && !(k === "stock" && storeCols.length)).map((k) => LABEL[k]!);
   const has = (k: Key) => map[k] !== undefined;
 
   // что уже есть на сайте
@@ -145,7 +157,16 @@ export function runImport(db: Database, rows: Cell[][], onlyPriceStock: boolean)
     if (!row.some((c) => text(c))) continue; // пустая строка
     const sku = t("sku");
     const price = money(get("price") ?? null);
-    const stockRaw = money(get("stock") ?? null);
+    // остатки по магазинам (если есть такие столбцы): общий остаток = их сумма
+    let byStore: Record<string, number> | undefined;
+    let storeBad = false;
+    for (const sc of storeCols) {
+      const n = money(row[sc.i] ?? null);
+      if (n === null) continue;
+      if (isNaN(n) || n < 0) { storeBad = true; continue; }
+      (byStore ??= {})[sc.name] = Math.round(n);
+    }
+    const stockRaw = byStore ? Object.values(byStore).reduce((a, b) => a + b, 0) : money(get("stock") ?? null);
     const old = money(get("old") ?? null);
     // строка-подсказка под заголовками в образце: нет ни бренда, ни цены, ни остатка
     if (!t("brand") && price === null && stockRaw === null) continue;
@@ -157,7 +178,7 @@ export function runImport(db: Database, rows: Cell[][], onlyPriceStock: boolean)
     if (seenSku.has(norm(sku))) { fail("Этот артикул уже был выше в таблице"); continue; }
     seenSku.add(norm(sku));
     if (price !== null && (isNaN(price) || price <= 0)) { fail("Цена не число"); continue; }
-    if (stockRaw !== null && (isNaN(stockRaw) || stockRaw < 0)) { fail("Остаток не число"); continue; }
+    if (storeBad || (stockRaw !== null && (isNaN(stockRaw) || stockRaw < 0))) { fail("Остаток не число"); continue; }
     if (old !== null && isNaN(old)) { fail("Старая цена не число"); continue; }
     const stock = stockRaw === null ? null : Math.round(stockRaw);
 
@@ -180,6 +201,7 @@ export function runImport(db: Database, rows: Cell[][], onlyPriceStock: boolean)
         if (nextOld !== v.oldPrice) { v.oldPrice = nextOld; changes.push("старая цена"); }
       }
       if (stock !== null && stock !== v.stock) { out.stock = `${v.stock} → ${stock}`; v.stock = stock; changes.push("остаток"); }
+      if (byStore && JSON.stringify(byStore) !== JSON.stringify(v.stores)) { v.stores = byStore; changes.push("наличие в магазинах"); }
       if (t("barcode") && t("barcode") !== v.barcode) v.barcode = t("barcode");
       if (!v.sku && norm(sku) !== norm(v.id)) v.sku = sku;
       if (!onlyPriceStock) {
@@ -215,7 +237,7 @@ export function runImport(db: Database, rows: Cell[][], onlyPriceStock: boolean)
     // ---- нового артикула нет на сайте: добавляем ----
     const miss = [!t("brand") && "бренда", !t("name") && "названия", !t("label") && "объёма / оттенка", price === null && "цены"].filter(Boolean);
     if (miss.length) { fail(`Новый товар: нет ${miss.join(", ")}`); continue; }
-    const variant: Variant = { id: sku, sku, label: t("label"), price: Math.round(price!), oldPrice: old && old > price! ? Math.round(old) : undefined, stock: stock ?? 0, barcode: t("barcode") || undefined };
+    const variant: Variant = { id: sku, sku, label: t("label"), price: Math.round(price!), oldPrice: old && old > price! ? Math.round(old) : undefined, stock: stock ?? 0, stores: byStore, barcode: t("barcode") || undefined };
     if (variant.id.length > 60 || /[^\p{L}\p{N}._-]/u.test(variant.id)) variant.id = crypto.randomUUID();
 
     const key = `${norm(t("brand"))}|${norm(t("name"))}`;
@@ -284,7 +306,9 @@ export function runImport(db: Database, rows: Cell[][], onlyPriceStock: boolean)
 export function catalogSheets(db: Database): Sheet[] {
   const brand = new Map(db.brands.map((b) => [b.id, b.name]));
   const cat = new Map(db.categories.map((c) => [c.id, c.name]));
-  const rows: Cell[][] = [[...HEADERS]];
+  // столбцы остатков по магазинам: магазины из настроек + те, что уже пришли из выгрузки
+  const storeNames = [...new Set([...(db.settings.stores ?? []).map((s) => s.name), ...db.products.flatMap((p) => p.variants.flatMap((v) => Object.keys(v.stores ?? {})))])];
+  const rows: Cell[][] = [[...HEADERS, ...storeNames.map((n) => `Остаток: ${n}`)]];
   for (const p of db.products) {
     const notes = p.notes && [p.notes.top, p.notes.heart, p.notes.base].some((l) => l.length) ? [p.notes.top, p.notes.heart, p.notes.base].map((l) => l.join(", ")).join(" / ") : "";
     for (const v of p.variants) {
@@ -292,6 +316,7 @@ export function catalogSheets(db: Database): Sheet[] {
         v.sku || v.id, v.barcode ?? "", brand.get(p.brandId) ?? "", p.name, cat.get(p.categoryId) ?? "", p.subcategoryId ? cat.get(p.subcategoryId) ?? "" : "",
         v.label, v.price, v.oldPrice ?? "", v.stock, p.gender ? GENDER_RU[p.gender] : "", p.family ?? "", notes, p.shortDescription, p.description,
         p.images[0] ?? "", p.isHit ? "да" : "", p.isNew ? "да" : "", p.isActive ? "да" : "нет", p.collection ?? "",
+        ...storeNames.map((n) => v.stores?.[n] ?? ""),
       ]);
     }
   }

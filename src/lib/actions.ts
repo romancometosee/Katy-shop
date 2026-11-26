@@ -96,9 +96,12 @@ export async function placeOrder(input: CheckoutInput): Promise<CheckoutResult> 
       const raw = p?.variants.find((x) => x.id === it.variantId);
       if (!p || !v || !raw) continue;
       const qty = Math.max(1, Math.min(99, Math.floor(Number(it.qty)) || 1));
+      // нельзя купить больше, чем есть в наличии
+      if (raw.stock < qty) return { ok: false as const, error: raw.stock > 0 ? `«${view!.brandName} ${p.name}, ${v.label}»: осталось только ${raw.stock} шт. Уменьшите количество в корзине.` : `«${view!.brandName} ${p.name}, ${v.label}» уже закончился. Уберите его из корзины.` };
       const asPro = pro && isProProduct(db, p);
       items.push({ productId: p.id, variantId: v.id, name: `${view!.brandName} ${p.name}`, variantLabel: v.label, price: asPro ? proPrice(raw.price, v.price, pro.discount) : v.price, qty, ...(asPro ? { pro: true } : {}) });
       raw.stock = Math.max(0, raw.stock - qty);
+      takeFromStores(raw, qty, input.delivery === "pickup" && typeof input.store === "number" ? db.settings.stores?.[input.store]?.name : undefined);
     }
     if (!items.length) return { ok: false as const, error: "Товары из корзины больше недоступны" };
     const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
@@ -291,4 +294,17 @@ function pickupCustomer(c: Order["customer"], stores: { name: string; address: s
     name: cut(c.name, 100), phone: cut(c.phone, 30), email: cut(c.email, 120), comment: cut(c.comment, 1000),
     city: "", address: st ? `Самовывоз: ${st.name}, ${st.address}` : "Самовывоз",
   };
+}
+
+/** Списываем проданное с остатков по магазинам: сначала из выбранного для самовывоза, потом откуда больше */
+function takeFromStores(v: { stores?: Record<string, number> }, qty: number, prefer?: string) {
+  if (!v.stores) return;
+  let left = qty;
+  const order = Object.keys(v.stores).sort((a, b) => Number(b === prefer) - Number(a === prefer) || v.stores![b] - v.stores![a]);
+  for (const k of order) {
+    const take = Math.min(left, v.stores[k]);
+    v.stores[k] -= take;
+    left -= take;
+    if (!left) break;
+  }
 }

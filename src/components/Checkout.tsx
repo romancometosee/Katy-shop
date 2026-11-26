@@ -146,7 +146,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
                   <div className="flex items-center rounded-full border border-line">
                     <button className="p-2" onClick={() => setQty(l.variantId, l.qty - 1)} aria-label="Меньше"><MinusIcon className="h-4 w-4" /></button>
                     <span className="w-6 text-center">{l.qty}</span>
-                    <button className="p-2" onClick={() => setQty(l.variantId, l.qty + 1)} aria-label="Больше"><PlusIcon className="h-4 w-4" /></button>
+                    <button className="p-2 disabled:opacity-30" disabled={l.max != null && l.max > 0 && l.qty >= l.max} title={l.max != null && l.qty >= l.max ? "Больше нет в наличии" : undefined} onClick={() => setQty(l.variantId, l.qty + 1)} aria-label="Больше"><PlusIcon className="h-4 w-4" /></button>
                   </div>
                   <p className="text-lg font-semibold">{rub(l.price * l.qty)}</p>
                 </div>
@@ -169,7 +169,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
           <div>
             <p className="h-display mb-4 text-2xl">Доставка</p>
             <div className="grid gap-3 sm:grid-cols-3">
-              {([["courier", "Курьер", ship || delivery !== "courier" ? `${rub(deliveryPrice)}, бесплатно от ${rub(freeDeliveryFrom)}` : "бесплатно"], ["pickup", "Самовывоз", "бесплатно"], ["post", "Пункт выдачи / почта", "2–6 дней"]] as const).map(([k, t, d]) => (
+              {([["courier", "Курьер", ship || delivery !== "courier" ? `${rub(deliveryPrice)}, бесплатно от ${rub(freeDeliveryFrom)}` : "бесплатно"], ["pickup", "Самовывоз из магазина", "бесплатно"], ["post", "По России", "СДЭК, Boxberry, Почта России · 2–7 дней"]] as const).map(([k, t, d]) => (
                 <label key={k} className={`cursor-pointer rounded-2xl border p-4 text-sm transition ${delivery === k ? "border-ink bg-sand" : "border-line"}`}>
                   <input type="radio" name="delivery" className="sr-only" checked={delivery === k} onChange={() => setDelivery(k)} />
                   <span className="block font-semibold">{t}</span>
@@ -195,7 +195,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
             {delivery !== "pickup" && (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <input name="city" placeholder="Город" className="input" />
-                <input name="address" placeholder="Адрес или пункт выдачи" className="input" />
+                <input name="address" placeholder={delivery === "post" ? "Адрес или пункт СДЭК / Boxberry" : "Улица, дом, квартира"} className="input" />
               </div>
             )}
           </div>
@@ -211,7 +211,7 @@ export default function Checkout({ freeDeliveryFrom, deliveryPrice, giftText, mo
             </div>
           )}
           <textarea name="comment" rows={3} placeholder="Комментарий: пожелания по подарку, удобное время звонка" className="input" />
-          <p className="text-xs text-ink-soft">Оплата при получении или по ссылке после подтверждения заказа менеджером.</p>
+          <p className="text-xs text-ink-soft">Оплата: менеджер позвонит, подтвердит заказ и пришлёт ссылку для оплаты картой или через СБП. Можно оплатить и при получении: в магазине, курьеру, а в СДЭК — наличными или картой в пункте выдачи.</p>
         </form>
       )}
       {summary}

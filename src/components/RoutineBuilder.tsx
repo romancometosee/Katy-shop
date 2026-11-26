@@ -60,7 +60,7 @@ export default function RoutineBuilder({ title, current, currentStep, steps }: {
           onClick={() => {
             for (const x of chosen) {
               const v = pick(x.product);
-              if (v) add({ productId: x.product.id, variantId: v.id, slug: x.product.slug, name: x.product.name, brandName: x.product.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: x.product.images[0], art: x.product.art });
+              if (v) add({ productId: x.product.id, variantId: v.id, slug: x.product.slug, name: x.product.name, brandName: x.product.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: x.product.images[0], art: x.product.art, max: v.stock });
             }
             setDrawerOpen(true);
           }}

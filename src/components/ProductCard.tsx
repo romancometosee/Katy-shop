@@ -29,7 +29,7 @@ export default function ProductCard({ p }: { p: ProductView }) {
       {/* быстрое добавление в корзину — выезжает снизу при наведении на фото */}
       {!many && (
         <button
-          onClick={() => add({ productId: p.id, variantId: cheapest.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: cheapest.label, price: cheapest.price, oldPrice: cheapest.oldPrice, image: p.images[0], art: p.art })}
+          onClick={() => add({ productId: p.id, variantId: cheapest.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: cheapest.label, price: cheapest.price, oldPrice: cheapest.oldPrice, image: p.images[0], art: p.art, max: cheapest.stock })}
           className="absolute inset-x-3 bottom-3 hidden translate-y-2 rounded-full bg-ink/90 py-2.5 text-xs font-semibold text-white opacity-0 backdrop-blur transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:block"
         >
           Быстро в корзину
@@ -71,7 +71,7 @@ export default function ProductCard({ p }: { p: ProductView }) {
           ) : (
             <button
               onClick={() =>
-                add({ productId: p.id, variantId: cheapest.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: cheapest.label, price: cheapest.price, oldPrice: cheapest.oldPrice, image: p.images[0], art: p.art })
+                add({ productId: p.id, variantId: cheapest.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: cheapest.label, price: cheapest.price, oldPrice: cheapest.oldPrice, image: p.images[0], art: p.art, max: cheapest.stock })
               }
               className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white transition hover:bg-black"
             >

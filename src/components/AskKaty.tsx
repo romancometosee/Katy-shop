@@ -85,7 +85,7 @@ function MiniCard({ p, onGo }: { p: ProductView; onGo: () => void }) {
         <button
           type="button"
           onClick={() => {
-            add({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art });
+            add({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, max: v.stock });
             setAdded(true);
           }}
           className={`shrink-0 rounded-full px-3 py-2 text-xs font-semibold transition ${added ? "bg-sand text-ink" : "bg-ink text-white hover:bg-rose"}`}

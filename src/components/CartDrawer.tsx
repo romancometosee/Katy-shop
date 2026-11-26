@@ -59,7 +59,7 @@ export default function CartDrawer({ freeDeliveryFrom, giftText }: { freeDeliver
                       <div className="flex items-center rounded-full border border-line bg-white">
                         <button className="p-2" onClick={() => setQty(l.variantId, l.qty - 1)} aria-label="Меньше"><MinusIcon className="h-3.5 w-3.5" /></button>
                         <span className="w-6 text-center text-sm">{l.qty}</span>
-                        <button className="p-2" onClick={() => setQty(l.variantId, l.qty + 1)} aria-label="Больше"><PlusIcon className="h-3.5 w-3.5" /></button>
+                        <button className="p-2 disabled:opacity-30" disabled={l.max != null && l.max > 0 && l.qty >= l.max} title={l.max != null && l.qty >= l.max ? "Больше нет в наличии" : undefined} onClick={() => setQty(l.variantId, l.qty + 1)} aria-label="Больше"><PlusIcon className="h-3.5 w-3.5" /></button>
                       </div>
                       <div className="text-right">
                         {l.oldPrice && <p className="text-xs text-ink-soft line-through">{rub(l.oldPrice * l.qty)}</p>}

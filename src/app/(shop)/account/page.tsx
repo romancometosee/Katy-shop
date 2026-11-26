@@ -53,7 +53,7 @@ export default async function AccountPage() {
       const p = toView(db, raw);
       const v = p.variants.find((x) => x.id === i.variantId);
       if (!v || v.stock <= 0) { missing++; continue; }
-      lines.push({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, qty: Math.min(i.qty, v.stock) });
+      lines.push({ productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, max: v.stock, qty: Math.min(i.qty, v.stock) });
     }
     return { lines, missing };
   };
@@ -62,7 +62,7 @@ export default async function AccountPage() {
   const refill = refills(db, orders).map((r) => {
     const p = toView(db, r.product);
     const v = p.variants.find((x) => x.id === r.variantId)!;
-    const line: CartLine = { productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, qty: 1 };
+    const line: CartLine = { productId: p.id, variantId: v.id, slug: p.slug, name: p.name, brandName: p.brandName, variantLabel: v.label, price: v.price, oldPrice: v.oldPrice, image: p.images[0], art: p.art, max: v.stock, qty: 1 };
     return { ...r, p, line };
   });
 

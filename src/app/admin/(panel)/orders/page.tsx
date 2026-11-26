@@ -4,7 +4,7 @@ import { getDb } from "@/lib/db";
 import { rub } from "@/lib/format";
 import { setOrderStatus } from "@/lib/admin-actions";
 
-const deliveryLabel = { courier: "Курьер", pickup: "Самовывоз", post: "Пункт выдачи / почта" };
+const deliveryLabel = { courier: "Курьер", pickup: "Самовывоз", post: "По России (СДЭК, Boxberry, Почта)" };
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
   const { status } = await searchParams;
