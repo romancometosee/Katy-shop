@@ -14,7 +14,7 @@ import { slugify } from "./slug";
 import { normPhone } from "./club";
 import { catalogSheets, runImport, type ImportResult } from "./catalog-import";
 import type { Cell, Sheet } from "./xlsx";
-import type { ArtShape, Banner, Database, Gender, OrderStatus, Product, Promotion, PromotionKind, PromotionScope, Settings, Variant } from "./types";
+import type { ArtShape, Banner, Brand, Database, Gender, OrderStatus, Product, Promotion, PromotionKind, PromotionScope, Settings, Variant } from "./types";
 
 async function requireAdmin() {
   if (!(await isAdmin())) redirect("/admin/login");
@@ -132,6 +132,7 @@ export async function saveProduct(fd: FormData) {
     variants: variants.length ? variants : [{ id: crypto.randomUUID(), label: "1 шт", price: 1000, stock: 0 }],
     gender: (str(fd, "gender") || undefined) as Gender | undefined,
     family: str(fd, "family") || undefined,
+    collection: str(fd, "collection") || undefined,
     notes: top || heart || base ? { top: list(top), heart: list(heart), base: list(base) } : undefined,
     skinType: list(str(fd, "skinType")),
     tags: list(str(fd, "tags")),
@@ -277,7 +278,9 @@ export async function saveBrand(fd: FormData) {
   if (!name) return;
   await updateDb((db) => {
     const b = db.brands.find((x) => x.id === id);
-    const fields = { name, country: str(fd, "country"), description: str(fd, "description"), isPopular: bool(fd, "isPopular") };
+    const fields: Partial<Brand> & { name: string; country: string; description: string; isPopular: boolean } = { name, country: str(fd, "country"), description: str(fd, "description"), isPopular: bool(fd, "isPopular") };
+    // расширенные поля есть только в форме «Страница бренда»
+    if (fd.has("story")) Object.assign(fields, { story: str(fd, "story").slice(0, 4000) || undefined, image: str(fd, "image") || undefined, founded: str(fd, "founded").slice(0, 20) || undefined });
     if (b) Object.assign(b, fields);
     else {
       const slug = uniqueSlug(slugify(name), db.brands.map((x) => x.slug));

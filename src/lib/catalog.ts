@@ -35,6 +35,7 @@ export type ProductView = {
   reviewsCount: number;
   gender?: Gender;
   family?: string;
+  collection?: string;
   /** Оттенки той же линейки (гель-лаки, лаки, помады): кружочки цвета в карточке */
   shades?: Shade[];
   /** Название оттенка этого товара (без названия линейки) */
@@ -130,6 +131,7 @@ export function toView(db: Database, product: Product): ProductView {
     reviewsCount: product.reviews.filter((r) => r.approved).length,
     gender: product.gender,
     family: product.family,
+    collection: product.collection,
     ...(() => {
       const shades = shadesFor(db, product);
       return shades ? { shades, shadeName: shades.find((x) => x.slug === product.slug)?.name } : {};
@@ -155,6 +157,8 @@ export type Filters = {
   isNew?: boolean;
   /** только ароматы, у которых есть распив */
   decant?: boolean;
+  /** коллекция бренда */
+  collection?: string;
   sort?: "popular" | "price-asc" | "price-desc" | "new" | "rating" | "discount";
 };
 
@@ -228,6 +232,7 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
   if (f.families?.length) list = list.filter((p) => p.family && f.families!.includes(p.family));
   if (f.hit) list = list.filter((p) => p.isHit);
   if (f.isNew) list = list.filter((p) => p.isNew);
+  if (f.collection) list = list.filter((p) => p.collection === f.collection);
   if (f.decant) list = list.filter((p) => p.variants.some((v) => isDecant(v.label)));
   const rank = new Map<string, number>();
   if (q) {
@@ -237,7 +242,7 @@ export function searchProducts(db: Database, f: Filters): ProductView[] {
       const cat = [p.subcategoryId, p.categoryId].map((id) => db.categories.find((c) => c.id === id)?.name ?? "").join(" ");
       const sex = p.gender === "men" ? "мужской мужские мужчине для мужчин" : p.gender === "women" ? "женский женские женщине для женщин" : p.gender === "unisex" ? "унисекс" : "";
       const decant = p.variants.some((v) => isDecant(v.label)) ? "распив отливант" : "";
-      return [p.name, brand, brandRu(brand), cat, decant, p.shortDescription, p.family ?? "", notes, p.tags.join(" "), sex].join(" ").toLowerCase().replace(/ё/g, "е").normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
+      return [p.name, brand, brandRu(brand), cat, decant, p.shortDescription, p.family ?? "", p.collection ?? "", notes, p.tags.join(" "), sex].join(" ").toLowerCase().replace(/ё/g, "е").normalize("NFD").replace(/([a-z])[\u0300-\u036f]+/g, "$1").normalize("NFC");
     };
     const qn = " " + q.replace(/ё/g, "е").replace(/[^a-zа-я0-9]+/gi, " ").trim();
     const flat = (p: Product) => " " + text(p).replace(/[^a-zа-я0-9]+/gi, " ");

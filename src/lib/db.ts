@@ -16,7 +16,27 @@ function withImages(db: Database): Database {
 
 let queue: Promise<unknown> = Promise.resolve();
 
-export const SEED_VERSION = 5;
+export const SEED_VERSION = 6;
+
+/** Пример страниц брендов: история, год основания и коллекции у части демо-каталога (заполняем только пустое) */
+const BRAND_STORIES: Record<string, { founded: string; story: string }> = {
+  chanel: { founded: "1910", story: "Дом Chanel начался в 1910 году с маленького ателье шляпок Габриэль Шанель в Париже.\n\nВ 1921 году вышел Chanel N°5 — аромат, который изменил парфюмерию: впервые альдегиды сделали цветы абстрактными и «невозможными». С тех пор ароматы Chanel создаются собственными парфюмерами дома." },
+  dior: { founded: "1946", story: "Кристиан Диор открыл свой дом моды в Париже в 1946 году, а уже через год вместе с первой коллекцией «New Look» представил аромат Miss Dior.\n\nСегодня Parfums Christian Dior — это классика вроде J’adore и Sauvage и коллекции, созданные парфюмерами дома." },
+  "maison-francis-kurkdjian": { founded: "2009", story: "Парфюмер Франсис Куркджан создал свой дом в Париже в 2009 году вместе с Марком Шайя.\n\nСамый известный аромат дома — Baccarat Rouge 540: шафран, амбра и кедр, узнаваемые с первого вдоха." },
+  "kilian-paris": { founded: "2007", story: "Килиан Эннесси, наследник семьи коньячного дома Hennessy, основал свой бренд в 2007 году.\n\nФлаконы Kilian задуманы как предметы, которые не выбрасывают: их можно наполнять снова." },
+  "tom-ford": { founded: "2006", story: "Tom Ford Beauty появился в 2006 году, а в 2007-м вышла коллекция Private Blend — смелые ароматы, созданные как будто для личной коллекции дизайнера.\n\nСреди самых известных — Tobacco Vanille, Oud Wood и Lost Cherry." },
+  guerlain: { founded: "1828", story: "Пьер-Франсуа-Паскаль Герлен открыл парфюмерную лавку в Париже в 1828 году.\n\nShalimar, Mitsouko, L’Heure Bleue — классика, которую до сих пор изучают парфюмеры всего мира." },
+};
+const DEMO_COLLECTIONS: Record<string, string> = {
+  "tom-ford-lost-cherry": "Private Blend", "tom-ford-tobacco-vanille": "Private Blend", "tom-ford-oud-wood": "Private Blend", "tom-ford-ombre-leather": "Signature", "kilian-paris-angels-share": "The Liquors",
+  "kerastase-elixir-ultime-shampun": "Elixir Ultime", "kerastase-elixir-ultime-l-huile-originale": "Elixir Ultime",
+  "opi-gel-lak-gelcolor-big-apple-red": "GelColor", "opi-gel-lak-gelcolor-funny-bunny": "GelColor", "opi-gel-lak-gelcolor-malaga-wine": "GelColor", "opi-gel-lak-gelcolor-bubble-bath": "GelColor",
+  "opi-lak-dlya-nogtey-big-apple-red": "Nail Lacquer", "opi-lak-dlya-nogtey-bubble-bath": "Nail Lacquer", "opi-sredstvo-dlya-ukrepleniya-nogtey-nail-envy-bubble-bath": "Nail Envy",
+};
+function addBrandPages(db: Database) {
+  for (const b of db.brands) { const s = BRAND_STORIES[b.id]; if (s && !b.story) Object.assign(b, s); }
+  for (const p of db.products) if (!p.collection && DEMO_COLLECTIONS[p.id]) p.collection = DEMO_COLLECTIONS[p.id];
+}
 
 /** Пример распива: у нишевых ароматов демо-каталога появляется «Распив 10 мл» (цена ≈ 100-мл флакон / 10 + 30% за розлив) */
 function addDemoDecants(db: Database) {
@@ -32,6 +52,7 @@ function addDemoDecants(db: Database) {
 function createSeed() {
   const s = baseSeed();
   addDemoDecants(s);
+  addBrandPages(s);
   s.promotions.push(...autoAdvent(s));
   return s;
 }
@@ -67,6 +88,8 @@ function upgrade(db: Database): boolean {
   }
   // версия 5: пример распива у нишевых ароматов
   if ((db.seedVersion ?? 1) < 5) addDemoDecants(db);
+  // версия 6: истории брендов и коллекции (страница бренда)
+  if ((db.seedVersion ?? 1) < 6) addBrandPages(db);
   db.seedVersion = SEED_VERSION;
   return true;
 }

@@ -8,11 +8,11 @@ import type { Cell, Sheet } from "./xlsx";
 export const HEADERS = [
   "Артикул *", "Штрихкод", "Бренд *", "Название *", "Раздел *", "Подраздел", "Объём / оттенок *", "Цена, ₽ *", "Старая цена, ₽",
   "Остаток, шт *", "Для кого", "Семейство аромата", "Ноты: верхние / сердце / база", "Краткое описание", "Полное описание",
-  "Фото", "Хит", "Новинка", "На сайте",
+  "Фото", "Хит", "Новинка", "На сайте", "Коллекция",
 ] as const;
-const WIDTHS = [16, 16, 18, 36, 16, 20, 18, 11, 13, 11, 12, 16, 40, 40, 50, 40, 6, 9, 9];
+const WIDTHS = [16, 16, 18, 36, 16, 20, 18, 11, 13, 11, 12, 16, 40, 40, 50, 40, 6, 9, 9, 22];
 
-type Key = "sku" | "barcode" | "brand" | "name" | "cat" | "sub" | "label" | "price" | "old" | "stock" | "gender" | "family" | "notes" | "short" | "desc" | "photo" | "hit" | "isNew" | "active";
+type Key = "sku" | "barcode" | "brand" | "name" | "cat" | "sub" | "label" | "price" | "old" | "stock" | "gender" | "family" | "notes" | "short" | "desc" | "photo" | "hit" | "isNew" | "active" | "collection";
 
 /** Узнаём столбец по началу заголовка — подойдёт и наш образец, и выгрузка из кассы с похожими названиями */
 const MATCH: [Key, RegExp][] = [
@@ -27,6 +27,7 @@ const MATCH: [Key, RegExp][] = [
   ["stock", /^(остат|кол-?во|количество|наличие)/],
   ["gender", /^для кого/],
   ["family", /^семейство/],
+  ["collection", /^(коллекция|линия|серия)/],
   ["notes", /^ноты/],
   ["short", /^(краткое|короткое)/],
   ["desc", /^(полное|описание)/],
@@ -194,6 +195,7 @@ export function runImport(db: Database, rows: Cell[][], onlyPriceStock: boolean)
         set("description", t("desc") || undefined, "описание");
         set("gender", genderOf(t("gender")), "для кого");
         set("family", t("family") || undefined, "семейство");
+        set("collection", t("collection") || undefined, "коллекция");
         set("notes", parseNotes(t("notes")), "ноты");
         if (has("hit")) set("isHit", yes(get("hit")), "хит");
         if (has("isNew")) set("isNew", yes(get("isNew")), "новинка");
@@ -256,6 +258,7 @@ export function runImport(db: Database, rows: Cell[][], onlyPriceStock: boolean)
       variants: [variant],
       gender: genderOf(t("gender")),
       family: t("family") || undefined,
+      collection: t("collection") || undefined,
       notes: parseNotes(t("notes")),
       tags: [],
       isHit: yes(get("hit")),
@@ -288,7 +291,7 @@ export function catalogSheets(db: Database): Sheet[] {
       rows.push([
         v.sku || v.id, v.barcode ?? "", brand.get(p.brandId) ?? "", p.name, cat.get(p.categoryId) ?? "", p.subcategoryId ? cat.get(p.subcategoryId) ?? "" : "",
         v.label, v.price, v.oldPrice ?? "", v.stock, p.gender ? GENDER_RU[p.gender] : "", p.family ?? "", notes, p.shortDescription, p.description,
-        p.images[0] ?? "", p.isHit ? "да" : "", p.isNew ? "да" : "", p.isActive ? "да" : "нет",
+        p.images[0] ?? "", p.isHit ? "да" : "", p.isNew ? "да" : "", p.isActive ? "да" : "нет", p.collection ?? "",
       ]);
     }
   }

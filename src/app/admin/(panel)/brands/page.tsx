@@ -27,6 +27,14 @@ export default async function BrandsAdmin() {
               <input name="description" defaultValue={b.description} className="input py-1.5" />
               <label className="flex items-center gap-2 text-xs"><input type="checkbox" name="isPopular" defaultChecked={b.isPopular} /> Популярный</label>
               <button className="rounded-full border border-line px-4 py-1.5 text-xs font-semibold">Сохранить</button>
+              <details className="sm:col-span-5" open={false}>
+                <summary className="cursor-pointer text-xs text-ink-soft hover:text-ink">Страница бренда: история, фото, год основания {b.story || b.image ? "✓" : ""}</summary>
+                <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_140px]">
+                  <input name="image" defaultValue={b.image} placeholder="Ссылка на большое фото для шапки (https://…)" className="input py-1.5 text-sm" />
+                  <input name="founded" defaultValue={b.founded} placeholder="Год основания" className="input py-1.5 text-sm" />
+                  <textarea name="story" defaultValue={b.story} rows={4} placeholder="История бренда. Абзацы разделяйте пустой строкой" className="input text-sm sm:col-span-2" />
+                </div>
+              </details>
             </form>
             <span className="w-20 text-xs text-ink-soft">{count(b.id)} {plural(count(b.id), "товар", "товара", "товаров")}</span>
             <form action={deleteBrand}>

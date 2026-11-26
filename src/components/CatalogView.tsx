@@ -28,6 +28,7 @@ export function filtersFromParams(sp: SP): Filters {
     hit: !!one(sp.hit),
     isNew: !!one(sp.new),
     decant: !!one(sp.decant),
+    collection: one(sp.collection),
     sort: (one(sp.sort) as Filters["sort"]) || "popular",
     q: one(sp.q),
   };
@@ -43,6 +44,7 @@ export default function CatalogView({
   links,
   activeLink,
   hero,
+  hideTitle,
 }: {
   db: Database;
   title: string;
@@ -53,6 +55,8 @@ export default function CatalogView({
   links?: { name: string; href: string }[];
   activeLink?: string;
   hero?: React.ReactNode;
+  /** заголовок уже есть в шапке (страница бренда) */
+  hideTitle?: boolean;
 }) {
   const f = { ...filtersFromParams(sp), ...Object.fromEntries(Object.entries(base).filter(([, v]) => v !== undefined)) } as Filters;
   const products = searchProducts(db, f);
@@ -81,7 +85,7 @@ export default function CatalogView({
       {hero}
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="h-display text-5xl sm:text-6xl">{title}</h1>
+          {hideTitle ? <p className="h-display text-3xl">{title}</p> : <h1 className="h-display text-5xl sm:text-6xl">{title}</h1>}
           {description && <p className="mt-3 max-w-2xl text-ink-soft">{description}</p>}
         </div>
         <p className="text-sm text-ink-soft">{products.length} {plural(products.length, "товар", "товара", "товаров")}</p>

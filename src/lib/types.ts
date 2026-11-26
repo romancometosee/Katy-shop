@@ -63,6 +63,8 @@ export type Product = {
   // ароматы
   notes?: { top: string[]; heart: string[]; base: string[] };
   family?: string; // «цветочный», «древесный» …
+  /** коллекция / линия бренда: «Private Blend», «Elixir Ultime» */
+  collection?: string;
   /** оценки покупателей: стойкость и шлейф (сколько голосов за 1…5) и «когда носить» */
   scentVotes?: ScentVotes;
   // уход / макияж
@@ -93,6 +95,12 @@ export type Brand = {
   country: string;
   description: string;
   isPopular: boolean;
+  /** история бренда для его страницы (абзацы через пустую строку) */
+  story?: string;
+  /** большое фото для шапки страницы бренда */
+  image?: string;
+  /** год основания */
+  founded?: string;
 };
 
 export type PromotionScope = "all" | "category" | "brand" | "products";

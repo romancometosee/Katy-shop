@@ -20,7 +20,7 @@ const shapes: [ArtShape, string][] = [
 
 const families = ["Цветочный", "Цветочный фруктовый", "Цветочный древесный", "Шипровый", "Фужерный", "Древесный", "Древесный ароматический", "Восточный", "Восточный пряный", "Восточный гурманский", "Гурманский", "Мускусный", "Водный", "Цитрусовый", "Кожаный"];
 
-export default function ProductForm({ product, brands, categories }: { product?: Product; brands: Brand[]; categories: Category[] }) {
+export default function ProductForm({ product, brands, categories, collections = [] }: { product?: Product; brands: Brand[]; categories: Category[]; collections?: string[] }) {
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? categories.find((c) => !c.parentId)?.id ?? "");
   const [variants, setVariants] = useState<Partial<Variant>[]>(product?.variants ?? [{ label: "50 мл", price: 0, stock: 10 }]);
   const [images, setImages] = useState<string[]>(product?.images ?? []);
@@ -119,6 +119,10 @@ export default function ProductForm({ product, brands, categories }: { product?:
             <Field label="Семейство аромата">
               <input name="family" list="families" defaultValue={product?.family} className="input" />
               <datalist id="families">{families.map((f) => <option key={f} value={f} />)}</datalist>
+            </Field>
+            <Field label="Коллекция / линия бренда" hint="Например: Private Blend. Появится на странице бренда">
+              <input name="collection" list="collections" defaultValue={product?.collection} className="input" />
+              <datalist id="collections">{collections.map((f) => <option key={f} value={f} />)}</datalist>
             </Field>
           </div>
           {isPerfume && (

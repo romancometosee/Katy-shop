@@ -129,6 +129,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         <div className="lg:pt-4">
           <Link href={`/brands/${p.brandSlug}`} className="text-sm font-bold uppercase tracking-[.2em] text-gold hover:text-ink">{p.brandName}</Link>
+          {p.collection && <Link href={`/brands/${p.brandSlug}?collection=${encodeURIComponent(p.collection)}`} className="ml-3 text-xs uppercase tracking-[.16em] text-ink-soft hover:text-ink">{p.collection}</Link>}
           <h1 className="h-display mt-2 text-4xl leading-tight sm:text-5xl">{p.name}</h1>
           <p className="mt-3 text-ink-soft">{p.shortDescription}</p>
           <div className="mt-3 flex items-center gap-2 text-sm">
