@@ -70,22 +70,26 @@ export default async function HomePage() {
 
       {/* разделы */}
       <Section title="Каталог" kicker="Разделы магазина">
-        <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-4 md:gap-4 md:overflow-visible md:px-0 lg:grid-cols-7">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:grid-cols-8">
           {cats.map((c) => (
-            <Link key={c.id} href={`/catalog/${c.slug}`} className="group relative flex aspect-[3/4] w-[38vw] shrink-0 snap-start flex-col overflow-hidden rounded-3xl md:w-auto" style={{ background: c.art.bg }}>
+            <Link key={c.id} href={`/catalog/${c.slug}`} className="group relative flex aspect-[3/4] min-w-0 flex-col overflow-hidden rounded-2xl sm:rounded-3xl" style={{ background: c.art.bg }}>
               {categoryImages[c.slug]?.length ? (
-                <PhotoFan images={categoryImages[c.slug]} className="mx-3 mt-5 h-[58%]" />
+                <PhotoFan images={categoryImages[c.slug]} className="mx-1.5 mt-2 h-[56%] sm:mx-3 sm:mt-5" />
               ) : (
-                <ProductArt {...c.art} withBg={false} className="mx-auto mt-4 h-[62%] transition duration-500 group-hover:-translate-y-1 group-hover:scale-105" />
+                <ProductArt {...c.art} withBg={false} className="mx-auto mt-2 h-[58%] transition duration-500 group-hover:-translate-y-1 group-hover:scale-105 sm:mt-4" />
               )}
-              <div className="mt-auto p-4">
-                <p className="h-display text-xl leading-tight sm:text-2xl">{c.name}</p>
-                <p className="mt-1 flex items-center text-xs font-semibold text-ink-soft">
+              <div className="mt-auto p-2 sm:p-4">
+                <p className="h-display text-[13px] leading-[1.1] sm:text-xl lg:text-2xl">{c.name}</p>
+                <p className="mt-1 hidden items-center text-xs font-semibold text-ink-soft sm:flex">
                   {(() => { const k = db.products.filter((p) => p.categoryId === c.id && p.isActive).length; return `${k} ${plural(k, "товар", "товара", "товаров")}`; })()} <ChevronRight className="h-3.5 w-3.5" />
                 </p>
               </div>
             </Link>
           ))}
+          <Link href="/catalog" className="group flex aspect-[3/4] min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-white p-2 text-center sm:rounded-3xl">
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-white transition group-hover:translate-x-0.5 sm:h-12 sm:w-12"><ChevronRight className="h-4 w-4" /></span>
+            <span className="h-display text-[13px] leading-[1.1] sm:text-xl">Весь каталог</span>
+          </Link>
         </div>
       </Section>
 
@@ -105,9 +109,9 @@ export default async function HomePage() {
       {/* акции — компактная лента: сколько акций заведено, столько и карточек */}
       {promos.length > 0 && (
         <Section title="Акции" kicker="Успейте купить" href="/sale" linkText="Все акции">
-          <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
             {promos.map((p) => (
-              <Link key={p.id} href={`/sale/${p.slug}`} className="group relative flex w-[78%] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-3xl p-5 text-white sm:w-auto" style={{ background: p.color }}>
+              <Link key={p.id} href={`/sale/${p.slug}`} className="group relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 text-white sm:p-5" style={{ background: p.color }}>
                 <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 transition group-hover:scale-110" />
                 <div className="relative flex items-baseline gap-3">
                   <p className="h-display shrink-0 text-4xl">{promoHeadline(p)}</p>
@@ -116,7 +120,7 @@ export default async function HomePage() {
                     {p.subtitle && <p className="line-clamp-1 text-sm text-white/75">{p.subtitle}</p>}
                   </div>
                 </div>
-                <div className="relative mt-4 flex items-center justify-between text-sm">
+                <div className="relative mt-2 flex items-center justify-between text-sm sm:mt-4">
                   <PromoCountdown endsAt={p.endsAt} />
                   <span className="hidden items-center gap-1 font-semibold sm:flex">Смотреть <ChevronRight className="h-4 w-4" /></span>
                 </div>
@@ -154,9 +158,9 @@ export default async function HomePage() {
             </div>
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink text-white transition group-hover:translate-x-0.5"><ChevronRight className="h-4 w-4" /></span>
           </Link>
-          <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
-            {notes.map((n) => (
-              <Link key={n.name} href={`/search?q=${encodeURIComponent(n.name.toLowerCase())}`} className="shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition hover:shadow-md" style={{ background: n.color }}>{n.name}</Link>
+          <div className="flex flex-wrap gap-1.5">
+            {notes.map((n, i) => (
+              <Link key={n.name} href={`/search?q=${encodeURIComponent(n.name.toLowerCase())}`} className={`${i >= 5 ? "max-sm:hidden" : ""} shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition hover:shadow-md`} style={{ background: n.color }}>{n.name}</Link>
             ))}
           </div>
         </div>

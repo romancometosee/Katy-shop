@@ -13,9 +13,9 @@ export default function RailTabs({ tabs }: { tabs: { label: string; href: string
   if (!cur) return null;
   return (
     <div>
-      <div className="no-scrollbar -mx-4 mb-6 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist">
+      <div className="mb-6 flex flex-wrap items-center gap-2" role="tablist">
         {list.map((t, k) => (
-          <button key={t.href} type="button" role="tab" aria-selected={k === i} onClick={() => setI(k)} className={`chip shrink-0 px-5 py-2 text-sm ${k === i ? "chip-active" : ""}`}>{t.label}</button>
+          <button key={t.href} type="button" role="tab" aria-selected={k === i} onClick={() => setI(k)} className={`chip shrink-0 px-3.5 py-1.5 text-[13px] sm:px-5 sm:py-2 sm:text-sm ${k === i ? "chip-active" : ""}`}>{t.label}</button>
         ))}
         <Link href={cur.href} className="ml-auto hidden shrink-0 items-center gap-1 text-sm font-semibold hover:underline sm:flex">Смотреть все <ChevronRight className="h-4 w-4" /></Link>
       </div>

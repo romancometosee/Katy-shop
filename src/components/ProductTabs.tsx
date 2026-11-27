@@ -31,9 +31,9 @@ export default function ProductTabs({
 
   return (
     <div>
-      <div className="no-scrollbar flex gap-6 overflow-x-auto border-b border-line">
+      <div className="no-scrollbar flex justify-between gap-2 overflow-x-auto border-b border-line sm:justify-start sm:gap-6">
         {tabs.map(([k, l]) => (
-          <button key={k} onClick={() => setTab(k)} className={`shrink-0 border-b-2 pb-3 text-sm font-semibold uppercase tracking-wider ${tab === k ? "border-ink" : "border-transparent text-ink-soft"}`}>{l}</button>
+          <button key={k} onClick={() => setTab(k)} className={`shrink-0 border-b-2 pb-3 text-[11px] font-semibold uppercase tracking-wide sm:text-sm sm:tracking-wider ${tab === k ? "border-ink" : "border-transparent text-ink-soft"}`}>{l}</button>
         ))}
       </div>
       <div className="py-8">

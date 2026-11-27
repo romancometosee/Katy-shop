@@ -92,9 +92,9 @@ export default function CatalogView({
       </div>
 
       {links && links.length > 0 && (
-        <div className="no-scrollbar -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+        <div className="mt-6 flex flex-wrap gap-1.5 sm:gap-2">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className={`chip shrink-0 px-4 py-2 text-sm ${activeLink === l.href ? "chip-active" : ""}`}>{l.name}</Link>
+            <Link key={l.href} href={l.href} className={`chip shrink-0 px-3 py-1.5 text-[13px] sm:px-4 sm:py-2 sm:text-sm ${activeLink === l.href ? "chip-active" : ""}`}>{l.name}</Link>
           ))}
         </div>
       )}
