@@ -17,6 +17,10 @@ export default function AccountMenu() {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const path = usePathname();
+  // запоминаем, что человек ходил по сайту, — крестик «Закрыть» на странице вернёт его назад
+  useEffect(() => {
+    try { sessionStorage.setItem("katy-pages", String(Number(sessionStorage.getItem("katy-pages") || 0) + 1)); } catch {}
+  }, [path]);
   useEffect(() => setOpen(false), [path]);
   useEffect(() => {
     if (!open) return;
