@@ -140,7 +140,7 @@ export default async function HomePage() {
             <span className="h-[55%] w-[86%] rounded-b-xl bg-gradient-to-t from-[#e8c98f] to-[#e8c98f]/40" />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[.25em] text-[#e8c98f]">Распив · {decantCount} {plural(decantCount, "аромат", "аромата", "ароматов")}</p>
+            <p className="text-xs font-semibold uppercase tracking-[.25em] text-[#e8c98f]">Распив · {decantCount >= 50 ? `${decantCount} ${plural(decantCount, "аромат", "аромата", "ароматов")}` : "оригиналы"}</p>
             <p className="h-display mt-2 text-3xl leading-tight sm:text-4xl">Ниша от 10 мл</p>
             <p className="mt-2 text-sm text-white/75">Разливаем оригинал из флакона в атомайзер 8–10 мл. Попробуйте дорогой аромат, не покупая большой флакон.</p>
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#e8c98f]">Смотреть распив <ChevronRight className="h-4 w-4" /></span>
