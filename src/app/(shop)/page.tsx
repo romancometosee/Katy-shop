@@ -7,7 +7,7 @@ import ProductRail from "@/components/ProductRail";
 import RailTabs from "@/components/RailTabs";
 import ProductArt from "@/components/ProductArt";
 import PhotoFan from "@/components/PhotoFan";
-import { categoryImages, quizImages } from "@/lib/productImages";
+import { categoryImages } from "@/lib/productImages";
 import PromoCountdown from "@/components/PromoCountdown";
 import { promoHeadline } from "@/lib/promo";
 import AdventTeaser from "@/components/AdventTeaser";
@@ -132,37 +132,32 @@ export default async function HomePage() {
         <ProductRail products={news} />
       </Section>
 
-      {/* распив и подбор аромата — компактно, в одну строку */}
-      <section className="container-x reveal mt-16 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Link href="/raspiv" className="group relative flex min-w-0 items-center gap-5 overflow-hidden rounded-[2rem] bg-[#2a2220] p-6 text-cream sm:p-8">
-          <span aria-hidden className="relative grid h-24 w-14 shrink-0 place-items-end rounded-b-2xl rounded-t-md border-2 border-[#e8c98f]/70 pb-1 transition duration-500 group-hover:-translate-y-1">
-            <span className="absolute -top-3 h-3 w-6 rounded-t-md bg-[#e8c98f]/80" />
-            <span className="h-[55%] w-[86%] rounded-b-xl bg-gradient-to-t from-[#e8c98f] to-[#e8c98f]/40" />
+      {/* распив и подбор аромата — две узкие полосы в одну строку */}
+      <section className="container-x reveal mt-12 grid grid-cols-1 gap-3 md:grid-cols-2">
+        <Link href="/raspiv" className="group relative flex min-w-0 items-center gap-4 overflow-hidden rounded-3xl bg-[#2a2220] px-5 py-4 text-cream sm:px-6">
+          <span aria-hidden className="relative grid h-14 w-9 shrink-0 place-items-end rounded-b-xl rounded-t-md border-2 border-[#e8c98f]/70 pb-0.5 transition duration-500 group-hover:-translate-y-0.5">
+            <span className="absolute -top-2 h-2 w-4 rounded-t bg-[#e8c98f]/80" />
+            <span className="h-[55%] w-[82%] rounded-b-lg bg-gradient-to-t from-[#e8c98f] to-[#e8c98f]/40" />
           </span>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[.25em] text-[#e8c98f]">Распив · {decantCount >= 50 ? `${decantCount} ${plural(decantCount, "аромат", "аромата", "ароматов")}` : "оригиналы"}</p>
-            <p className="h-display mt-2 text-3xl leading-tight sm:text-4xl">Ниша от 10 мл</p>
-            <p className="mt-2 text-sm text-white/75">Разливаем оригинал из флакона в атомайзер 8–10 мл. Попробуйте дорогой аромат, не покупая большой флакон.</p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#e8c98f]">Смотреть распив <ChevronRight className="h-4 w-4" /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[.25em] text-[#e8c98f]">Распив · {decantCount >= 50 ? `${decantCount} ${plural(decantCount, "аромат", "аромата", "ароматов")}` : "оригиналы"}</p>
+            <p className="h-display mt-0.5 text-2xl leading-tight">Ниша от 10 мл</p>
+            <p className="mt-0.5 line-clamp-1 text-xs text-white/70">Оригинал в атомайзере 8–10 мл</p>
           </div>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#e8c98f] text-ink transition group-hover:translate-x-0.5"><ChevronRight className="h-4 w-4" /></span>
         </Link>
-        <div className="flex min-w-0 flex-col justify-between gap-4 rounded-[2rem] bg-blush p-6 sm:p-8">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[.25em] text-rose">Персональный подбор</p>
-              <p className="h-display mt-2 text-3xl leading-tight sm:text-4xl">Не знаете, какой аромат выбрать?</p>
-              <p className="mt-2 text-sm text-ink-soft">4 простых вопроса — и подборка ароматов под вас.</p>
+        <div className="flex min-w-0 flex-col justify-center gap-2.5 rounded-3xl bg-blush px-5 py-4 sm:px-6">
+          <Link href="/podbor" className="group flex items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[.25em] text-rose">Подбор · 4 вопроса</p>
+              <p className="h-display mt-0.5 text-2xl leading-tight">Не знаете, какой аромат выбрать?</p>
             </div>
-            <Link href="/podbor" aria-label="Подобрать аромат" className="hidden h-24 w-24 shrink-0 sm:block"><PhotoFan images={quizImages} className="h-full w-full" /></Link>
-          </div>
-          <div>
-            <Link href="/podbor" className="btn-dark">Подобрать аромат</Link>
-            <p className="mt-4 text-xs font-semibold uppercase tracking-[.2em] text-ink-soft">Или по любимой ноте</p>
-            <div className="no-scrollbar -mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1">
-              {notes.map((n) => (
-                <Link key={n.name} href={`/search?q=${encodeURIComponent(n.name.toLowerCase())}`} className="shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition hover:shadow-md" style={{ background: n.color }}>{n.name}</Link>
-              ))}
-            </div>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink text-white transition group-hover:translate-x-0.5"><ChevronRight className="h-4 w-4" /></span>
+          </Link>
+          <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
+            {notes.map((n) => (
+              <Link key={n.name} href={`/search?q=${encodeURIComponent(n.name.toLowerCase())}`} className="shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition hover:shadow-md" style={{ background: n.color }}>{n.name}</Link>
+            ))}
           </div>
         </div>
       </section>
